@@ -1,19 +1,19 @@
 import { Ionicons } from '@expo/vector-icons';
+
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
 import UserProfileSetup from './src/Profile/PersonalInformation';
 import ChatScreen from './src/screens/ChatScreen';
-import UserProfile from './src/screens/UserProfile'
-import Home from './src/screens/Home';
+
 import { View, Text } from 'react-native';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
 
-// Home
+// 👉 Dummy Home screen
 function HomeScreen() {
   return (
     <View style={{ flex:1, justifyContent:'center', alignItems:'center' }}>
@@ -23,41 +23,34 @@ function HomeScreen() {
 }
 
 
-// Bottom Tabs
+// 👉 Bottom Tabs
 function MainTabs() {
   return (
     <Tab.Navigator
-      screenOptions={({ route }) => ({
+      screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: '#10B981',
-        tabBarInactiveTintColor: 'gray',
-
-        tabBarIcon: ({ color, size }) => {
-          let icon;
-
-          if (route.name === 'Home') icon = 'home';
-          if (route.name === 'Chat') icon = 'chatbubble';
-          if (route.name === 'Profile') icon = 'person';
-
-          return <Ionicons name={icon} size={size} color={color} />;
-        },
-      })}
+      }}
     >
-      <Tab.Screen name="Home" component={Home} />
+      <Tab.Screen name="Home" component={HomeScreen} />
       <Tab.Screen name="Chat" component={ChatScreen} />
-      <Tab.Screen name="Profile" component={UserProfile} />
+      <Tab.Screen name="Profile" component={UserProfileSetup} />
     </Tab.Navigator>
   );
 }
 
 
-// Main App
 export default function App() {
   return (
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
+
+        {/* First open profile setup */}
         <Stack.Screen name="ProfileSetup" component={UserProfileSetup} />
+
+        {/* After save → open tabs */}
         <Stack.Screen name="MainTabs" component={MainTabs} />
+
       </Stack.Navigator>
     </NavigationContainer>
   );
