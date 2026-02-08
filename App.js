@@ -3,41 +3,39 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
+import LaunchScreen from './src/screens/LaunchScreen';   // ⭐ ADDED
 import UserProfileSetup from './src/Profile/PersonalInformation';
 import ChatScreen from './src/screens/ChatScreen';
-import UserProfile from './src/screens/UserProfile'
+import UserProfile from './src/screens/UserProfile';
 import Home from './src/screens/Home';
-import { View, Text } from 'react-native';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
 
-// Home
-function HomeScreen() {
-  return (
-    <View style={{ flex:1, justifyContent:'center', alignItems:'center' }}>
-      <Text>Home</Text>
-    </View>
-  );
-}
-
-
-// Bottom Tabs
+/* =========================
+   Bottom Tabs (Footer)
+========================= */
 function MainTabs() {
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
+
         tabBarActiveTintColor: '#10B981',
         tabBarInactiveTintColor: 'gray',
+
+        tabBarStyle: {
+          height: 60,
+          paddingBottom: 6,
+        },
 
         tabBarIcon: ({ color, size }) => {
           let icon;
 
           if (route.name === 'Home') icon = 'home';
-          if (route.name === 'Chat') icon = 'chatbubble';
-          if (route.name === 'Profile') icon = 'person';
+          else if (route.name === 'Chat') icon = 'chatbubble-ellipses';
+          else if (route.name === 'Profile') icon = 'person';
 
           return <Ionicons name={icon} size={size} color={color} />;
         },
@@ -51,13 +49,23 @@ function MainTabs() {
 }
 
 
-// Main App
+/* =========================
+   Main App Navigator
+========================= */
 export default function App() {
   return (
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
+
+        {/* ⭐ FIRST SCREEN (Splash) */}
+        <Stack.Screen name="Launch" component={LaunchScreen} />
+
+        {/* Profile Setup */}
         <Stack.Screen name="ProfileSetup" component={UserProfileSetup} />
+
+        {/* Tabs with footer icons */}
         <Stack.Screen name="MainTabs" component={MainTabs} />
+
       </Stack.Navigator>
     </NavigationContainer>
   );

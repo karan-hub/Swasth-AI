@@ -12,6 +12,7 @@ import {
   SafeAreaView,
   StatusBar,
 } from "react-native";
+import { sendMessageToChat } from '../api/chatapi';
 
 import { useState, useEffect, useRef } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -79,28 +80,48 @@ export default function ChatScreen() {
     return `${formattedHours}:${formattedMinutes} ${ampm}`;
   };
 
-  const handleSend = () => {
-    if (!text.trim()) return;
+ const handleSend = async () => {
+  if (!text.trim()) return;
 
-    const userMsg = addMessage(text, "user");
-    const updated = [...messages, userMsg];
+  const userMsg = addMessage(text, "user");
+  const updated = [...messages, userMsg];
 
-    setMessages(updated);
-    saveMessages(updated);
-    setText("");
-    setIsTyping(true);
+  setMessages(updated);
+  saveMessages(updated);
+  setText("");
+  setIsTyping(true);
 
-    setTimeout(() => {
-      const aiMsg = addMessage(
-        "Thank you for your message. Based on your Prakriti and health profile, I can provide personalized guidance. How can I assist you further?",
-        "ai"
-      );
-      const finalMsgs = [...updated, aiMsg];
-      setMessages(finalMsgs);
-      saveMessages(finalMsgs);
-      setIsTyping(false);
-    }, 1500);
-  };
+  try {
+    const userId = "user1";
+    const sessionId = "session1";
+
+    // 🔥 CALL BACKEND HERE
+    const response = await sendMessageToChat(text, userId, sessionId);
+
+    console.log("API response:", response);
+
+    const aiText =
+      response?.understanding?.message ||
+      response?.message ||
+      "Sorry, no reply from server.";
+
+    const aiMsg = addMessage(aiText, "ai");
+
+    const finalMsgs = [...updated, aiMsg];
+
+    setMessages(finalMsgs);
+    saveMessages(finalMsgs);
+
+  } catch (error) {
+    console.log(error);
+
+    const errorMsg = addMessage("Server error 😢", "ai");
+    setMessages([...updated, errorMsg]);
+  }
+
+  setIsTyping(false);
+};
+
 
   const clearChat = async () => {
     try {
