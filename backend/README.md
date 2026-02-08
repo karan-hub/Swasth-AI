@@ -74,23 +74,80 @@ node server.js
 
 The server will start on `http://localhost:3000`.
 
+### Remote Access
+To access the server from another device on the same network:
+1.  Ensure your computer and the device are connected to the same Wi-Fi/Network.
+2.  Use the IP address `10.121.49.25` instead of `localhost`.
+3.  Example URL: `http://10.121.49.25:3000` (or `http://10.121.49.25:3000/chat` for API).
+4.  If you cannot connect, check your firewall settings to allow traffic on port 3000.
+
 ## API Endpoints
 
-### `POST /profile`
-Create or update a user profile.
-- **Body**: JSON object containing `personalInformation` (including `firstName`, `lastName`), `prakriti`, `vikriti`, etc.
+### 1. Create/Update Profile (`POST /profile`)
+Creates a user profile to personalize the AI's advice.
 
-### `POST /chat`
-Send a message to the AI.
-- **Body**:
-    ```json
-    {
-      "message": "I have a fever and body ache.",
-      "userId": 1,
-      "sessionId": 123
-    }
-    ```
-- **Response**: JSON object with the AI's reply (`understanding`, `possible_reasons`, `actions`, `notes`).
+**Request Body (JSON):**
+```json
+{
+  "personalInformation": {
+    "firstName": "String (Required)",
+    "lastName": "String (Required)",
+    "age": "Number",
+    "gender": "String",
+    "height_cm": "Number",
+    "weight_kg": "Number"
+  },
+  "prakriti": {
+    "dominantPrakriti": "String (e.g., 'Vata-Pitta')",
+    "...": "Other fields stored as JSON"
+  },
+  "vikriti": { "...": "Stored as JSON" },
+  "agni": { "...": "Stored as JSON" },
+  "ahara": { "...": "Stored as JSON" },
+  "dinacharya": { "...": "Stored as JSON" },
+  "lifestyleAndStress": { "...": "Stored as JSON" },
+  "medicalSafety": { "...": "Stored as JSON" }
+}
+```
+
+**Response (JSON):**
+```json
+{
+  "message": "Profile saved successfully.",
+  "userId": 123
+}
+```
+
+### 2. Chat with AI (`POST /chat`)
+Send a message to Swasthya AI.
+
+**Request Body (JSON):**
+```json
+{
+  "message": "String (Required) - e.g., 'I have a headache'",
+  "userId": "Number (Optional) - returned from /profile",
+  "sessionId": "Number (Optional) - to continue conversation"
+}
+```
+
+**Response (JSON):**
+```json
+{
+  "agent": "Swasthya AI",
+  "tone": "reassuring",
+  "understanding": {
+    "message": "Empathetic acknowledgment of the user's issue."
+  },
+  "possible_reasons": ["List of potential Ayurvedic causes..."],
+  "questions_to_ask": ["Follow-up questions..."],
+  "actions": {
+    "do_actions": ["List of recommended actions/remedies..."],
+    "dont_actions": ["List of things to avoid..."]
+  },
+  "notes": ["Closing reassuring note..."],
+  "sessionId": 456
+}
+```
 
 ## Contributing
 
