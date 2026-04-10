@@ -1,4 +1,5 @@
-const BASE_URL = "http://10.121.49.25:3000";
+// const BASE_URL = "http://10.121.49.25:3000";
+const BASE_URL = "http://10.92.53.25:3000";
 
 export const sendMessageToChat = async (message, userId, sessionId) => {
   try {

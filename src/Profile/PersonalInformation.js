@@ -100,16 +100,15 @@ const UserProfileSetup = () => {
         bodyFrame,
         skinType,
         appetiteNature,
-        heatOrColdTolerance, // Not temperatureTolerance
-        stressHandlingCapacity, // Not stressHandling
-        dominantPrakriti,
+        heatOrColdTolerance: temperatureTolerance,
+        stressHandlingCapacity: stressHandling,
       },
 
       vikriti: {
         currentSymptoms,
-        duration, // Not symptomDuration
+        duration: symptomDuration,
         severityLevel,
-        timeOfAggravation, // Not aggravationTime
+        timeOfAggravation: aggravationTime,
       },
 
       agni: {
@@ -167,8 +166,8 @@ const UserProfileSetup = () => {
 
       navigation.replace("MainTabs", { screen: "Chat" });
     } catch (err) {
-      console.log(err);
-      alert("Failed to save profile 😢");
+      console.error("Profile save error:", err);
+      alert(`Failed to save profile: ${err.message}`);
     } finally {
       setLoading(false);
     }

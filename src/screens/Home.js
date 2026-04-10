@@ -6,12 +6,14 @@ import {
   StyleSheet,
   ScrollView,
   Image,
-  SafeAreaView,
   Dimensions,
   TextInput,
   FlatList,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import {
+  SafeAreaView,
+} from 'react-native-safe-area-context';
 
 const { width } = Dimensions.get('window');
 
@@ -54,8 +56,8 @@ const recentActivities = [
 // ============================================
 
 const WellnessCard = ({ title, value, subtitle, icon, color, onPress }) => (
-  <TouchableOpacity 
-    style={[styles.wellnessCard, { borderLeftColor: color }]} 
+  <TouchableOpacity
+    style={[styles.wellnessCard, { borderLeftColor: color }]}
     onPress={onPress}
     activeOpacity={0.8}
   >
@@ -136,11 +138,11 @@ const DoshaProgress = ({ dosha }) => (
     </View>
     <View style={styles.progressContainer}>
       <View style={styles.progressBar}>
-        <View 
+        <View
           style={[
-            styles.progressFill, 
+            styles.progressFill,
             { width: `${dosha.percentage}%`, backgroundColor: dosha.color }
-          ]} 
+          ]}
         />
       </View>
       <Text style={styles.doshaPercentage}>{dosha.percentage}%</Text>
@@ -162,7 +164,7 @@ const HomeScreen = () => {
       <View style={styles.backgroundCircle1} />
       <View style={styles.backgroundCircle2} />
 
-      <ScrollView 
+      <ScrollView
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
@@ -172,7 +174,7 @@ const HomeScreen = () => {
           <View style={styles.headerTop}>
             <View>
               <Text style={styles.greeting}>{greeting},</Text>
-              <Text style={styles.userName}>John Doe</Text>
+              <Text style={styles.userName}>Gayatri...</Text>
             </View>
             <View style={styles.headerActions}>
               <TouchableOpacity style={styles.notificationButton}>
@@ -180,8 +182,8 @@ const HomeScreen = () => {
                 <View style={styles.notificationBadge} />
               </TouchableOpacity>
               <TouchableOpacity style={styles.avatarButton}>
-                <Image 
-                  source={{ uri: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=300&fit=crop' }}
+                <Image
+                  source={{ uri: 'https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fstatic.vecteezy.com%2Fsystem%2Fresources%2Fthumbnails%2F045%2F711%2F171%2Fsmall_2x%2Fdefault-placeholder-avatar-profile-on-gray-background-woman-with-dark-hair-in-silhouette-greyscale-vector.jpg&f=1&nofb=1&ipt=0a3a6621f515ca6674bbedfa41962d90ae2c66eb089c2c74f928e9984d2f595c' }}
                   style={styles.avatar}
                 />
               </TouchableOpacity>
@@ -216,7 +218,7 @@ const HomeScreen = () => {
               <Ionicons name="arrow-forward" size={18} color="white" />
             </TouchableOpacity>
           </View>
-          <Image 
+          <Image
             source={{ uri: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=200&h=200&fit=crop' }}
             style={styles.welcomeImage}
           />
@@ -231,32 +233,32 @@ const HomeScreen = () => {
             </TouchableOpacity>
           </View>
           <View style={styles.statsGrid}>
-            <WellnessCard 
-              title="Sleep Quality" 
-              value="8.2" 
-              subtitle="hours" 
-              icon="moon-outline" 
+            <WellnessCard
+              title="Sleep Quality"
+              value="8.2"
+              subtitle="hours"
+              icon="moon-outline"
               color="#8B5CF6"
             />
-            <WellnessCard 
-              title="Water Intake" 
-              value="2.5" 
-              subtitle="liters" 
-              icon="water-outline" 
+            <WellnessCard
+              title="Water Intake"
+              value="2.5"
+              subtitle="liters"
+              icon="water-outline"
               color="#3B82F6"
             />
-            <WellnessCard 
-              title="Activity" 
-              value="65" 
-              subtitle="minutes" 
-              icon="walk-outline" 
+            <WellnessCard
+              title="Activity"
+              value="65"
+              subtitle="minutes"
+              icon="walk-outline"
               color="#10B981"
             />
-            <WellnessCard 
-              title="Stress Level" 
-              value="Low" 
-              subtitle="" 
-              icon="pulse-outline" 
+            <WellnessCard
+              title="Stress Level"
+              value="Low"
+              subtitle=""
+              icon="pulse-outline"
               color="#EC4899"
             />
           </View>
@@ -339,7 +341,9 @@ const HomeScreen = () => {
 
         {/* Quick Actions */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Quick Actions</Text>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Quick Actions</Text>
+          </View>
           <View style={styles.actionsGrid}>
             <TouchableOpacity style={styles.actionButton}>
               <View style={[styles.actionIcon, { backgroundColor: '#FEF3C7' }]}>
@@ -371,31 +375,8 @@ const HomeScreen = () => {
         <View style={{ height: 100 }} />
       </ScrollView>
 
-      {/* Bottom Navigation */}
-      <View style={styles.bottomNav}>
-        <TouchableOpacity style={styles.navItem}>
-          <Ionicons name="home" size={24} color="#7C3AED" />
-          <Text style={styles.navTextActive}>Home</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem}>
-          <Ionicons name="calendar-outline" size={24} color="#64748B" />
-          <Text style={styles.navText}>Schedule</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem}>
-          <View style={styles.centralButton}>
-            <Ionicons name="add" size={28} color="white" />
-          </View>
-          <Text style={styles.navText}>Add</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem}>
-          <Ionicons name="stats-chart-outline" size={24} color="#64748B" />
-          <Text style={styles.navText}>Stats</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem}>
-          <Ionicons name="person-outline" size={24} color="#64748B" />
-          <Text style={styles.navText}>Profile</Text>
-        </TouchableOpacity>
-      </View>
+
+
     </SafeAreaView>
   );
 };

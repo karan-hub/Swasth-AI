@@ -6,10 +6,12 @@ import {
   StyleSheet,
   ScrollView,
   Image,
-  SafeAreaView,
   Dimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import {
+  SafeAreaView,
+} from 'react-native-safe-area-context';
 
 const { width } = Dimensions.get('window');
 
@@ -20,7 +22,7 @@ const { width } = Dimensions.get('window');
 // Create a sample user profile
 const createUserProfile = (data) => {
   const now = new Date();
-  
+
   return {
     id: data.id || `user_${Date.now()}`,
     username: data.username || '',
@@ -62,7 +64,7 @@ const createUserProfile = (data) => {
       'Improve digestion',
       'Reduce stress',
       'Better sleep quality',
-      'Increase energy levels',
+      'Increase energy ',
     ],
   };
 };
@@ -75,41 +77,36 @@ const getFullName = (user) => {
 // Calculate user's age
 const getUserAge = (user) => {
   if (!user.dateOfBirth) return null;
-  
+
   const today = new Date();
   const birthDate = new Date(user.dateOfBirth);
   let age = today.getFullYear() - birthDate.getFullYear();
   const monthDiff = today.getMonth() - birthDate.getMonth();
-  
+
   if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
     age--;
   }
-  
+
   return age;
 };
 
 // Sample user data
 const sampleUser = createUserProfile({
   username: 'ayurvedic_wellness',
-  email: 'john.doe@ayurveda.com',
-  firstName: 'John',
-  lastName: 'Doe',
-  avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=300&fit=crop',
+  email: 'gayatri4334@gmail.com',
+  firstName: 'Gayatri',
+  lastName: '...',
+  avatar: 'https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fstatic.vecteezy.com%2Fsystem%2Fresources%2Fthumbnails%2F045%2F711%2F171%2Fsmall_2x%2Fdefault-placeholder-avatar-profile-on-gray-background-woman-with-dark-hair-in-silhouette-greyscale-vector.jpg&f=1&nofb=1&ipt=0a3a6621f515ca6674bbedfa41962d90ae2c66eb089c2c74f928e9984d2f595c',
   bio: 'Ayurveda enthusiast focused on holistic wellness. Passionate about natural healing, yoga, and balanced living. Following Ayurvedic principles for 3 years.',
-  phoneNumber: '+1-234-567-8900',
+  phoneNumber: '+91-9867453421',
   dateOfBirth: new Date('1990-05-15'),
   address: {
-    street: '123 Wellness Street',
-    city: 'Rishikesh',
-    state: 'Uttarakhand',
+    street: '123 ABC Street',
+    city: 'pune',
+    state: 'Maharashtra',
     zipCode: '249201',
     country: 'India',
-  },
-  socialLinks: {
-    instagram: '@ayurveda_wellness',
-    youtube: 'youtube.com/ayurvedic_living',
-    website: 'ayurvedicwellness.com',
-  },
+  }
 });
 
 // ============================================
@@ -169,7 +166,7 @@ const MedicationItem = ({ medication }) => (
 // ============================================
 
 const ProfileScreen = ({ user }) => (
-  <ScrollView 
+  <ScrollView
     style={styles.screenContainer}
     showsVerticalScrollIndicator={false}
   >
@@ -194,7 +191,7 @@ const ProfileScreen = ({ user }) => (
           <Ionicons name="at" size={16} color="#7C3AED" />
           <Text style={styles.username}>@{user.username}</Text>
         </View>
-        
+
         {/* Dosha Tag */}
         <View style={styles.doshaTag}>
           <Ionicons name="heart-circle-outline" size={16} color="#DC2626" />
@@ -228,7 +225,6 @@ const ProfileScreen = ({ user }) => (
         <Text style={styles.sectionTitle}>About</Text>
       </View>
       <View style={styles.bioCard}>
-        <Ionicons name="quote" size={24} color="#CBD5E1" style={styles.quoteIcon} />
         <Text style={styles.bio}>{user.bio}</Text>
       </View>
     </View>
@@ -240,32 +236,32 @@ const ProfileScreen = ({ user }) => (
         <Text style={styles.sectionTitle}>Wellness Overview</Text>
       </View>
       <View style={styles.wellnessGrid}>
-        <WellnessCard 
-          title="Sleep Quality" 
-          value="8.2" 
-          unit="hours" 
-          icon="moon-outline" 
-          color="#8B5CF6" 
+        <WellnessCard
+          title="Sleep Quality"
+          value="8.2"
+          unit="hours"
+          icon="moon-outline"
+          color="#8B5CF6"
         />
-        <WellnessCard 
-          title="Stress Level" 
-          value="Medium" 
-          icon="trending-down-outline" 
-          color="#3B82F6" 
+        <WellnessCard
+          title="Stress Level"
+          value="Medium"
+          icon="trending-down-outline"
+          color="#3B82F6"
         />
-        <WellnessCard 
-          title="Exercise" 
-          value="45" 
-          unit="min/day" 
-          icon="barbell-outline" 
-          color="#10B981" 
+        <WellnessCard
+          title="Exercise"
+          value="45"
+          unit="min/day"
+          icon="barbell-outline"
+          color="#10B981"
         />
-        <WellnessCard 
-          title="Meditation" 
-          value="20" 
-          unit="min/day" 
-          icon="time-outline" 
-          color="#EC4899" 
+        <WellnessCard
+          title="Meditation"
+          value="20"
+          unit="min/day"
+          icon="time-outline"
+          color="#EC4899"
         />
       </View>
     </View>
@@ -329,63 +325,6 @@ const ProfileScreen = ({ user }) => (
       </View>
     </View>
 
-    {/* Social Links */}
-    <View style={styles.sectionContainer}>
-      <View style={styles.sectionHeader}>
-        <Ionicons name="share-social-outline" size={20} color="#7C3AED" />
-        <Text style={styles.sectionTitle}>Connect with Me</Text>
-      </View>
-      <View style={styles.socialLinksCard}>
-        {user.socialLinks.instagram && (
-          <TouchableOpacity style={styles.socialButton}>
-            <View style={[styles.socialIcon, { backgroundColor: '#E1306C' }]}>
-              <Ionicons name="logo-instagram" size={20} color="white" />
-            </View>
-            <Text style={styles.socialText}>{user.socialLinks.instagram}</Text>
-          </TouchableOpacity>
-        )}
-        {user.socialLinks.youtube && (
-          <TouchableOpacity style={styles.socialButton}>
-            <View style={[styles.socialIcon, { backgroundColor: '#FF0000' }]}>
-              <Ionicons name="logo-youtube" size={20} color="white" />
-            </View>
-            <Text style={styles.socialText}>{user.socialLinks.youtube}</Text>
-          </TouchableOpacity>
-        )}
-        {user.socialLinks.website && (
-          <TouchableOpacity style={styles.socialButton}>
-            <View style={[styles.socialIcon, { backgroundColor: '#7C3AED' }]}>
-              <Ionicons name="globe-outline" size={20} color="white" />
-            </View>
-            <Text style={styles.socialText}>{user.socialLinks.website}</Text>
-          </TouchableOpacity>
-        )}
-      </View>
-    </View>
-
-    {/* Appointments */}
-    <View style={styles.sectionContainer}>
-      <View style={styles.sectionHeader}>
-        <Ionicons name="calendar-outline" size={20} color="#10B981" />
-        <Text style={styles.sectionTitle}>Appointments</Text>
-      </View>
-      <View style={styles.appointmentsContainer}>
-        <View style={styles.appointmentCard}>
-          <View style={styles.appointmentHeader}>
-            <Ionicons name="checkmark-done-circle-outline" size={20} color="#059669" />
-            <Text style={styles.appointmentTitle}>Last Checkup</Text>
-          </View>
-          <Text style={styles.appointmentDate}>{user.lastCheckup}</Text>
-        </View>
-        <View style={styles.appointmentCard}>
-          <View style={styles.appointmentHeader}>
-            <Ionicons name="time-outline" size={20} color="#3B82F6" />
-            <Text style={styles.appointmentTitle}>Next Appointment</Text>
-          </View>
-          <Text style={styles.appointmentDate}>{user.nextAppointment}</Text>
-        </View>
-      </View>
-    </View>
 
     <View style={{ height: 30 }} />
   </ScrollView>
@@ -402,7 +341,6 @@ const App = () => {
       <View style={styles.header}>
         <View style={styles.headerContent}>
           <View style={styles.headerLeft}>
-            <Ionicons name="person-circle-outline" size={28} color="#7C3AED" />
             <Text style={styles.headerTitle}>Ayurvedic Profile</Text>
           </View>
           <TouchableOpacity style={styles.editButton}>
@@ -449,15 +387,14 @@ const styles = StyleSheet.create({
   },
   header: {
     backgroundColor: 'white',
-    paddingVertical: 12,
     paddingHorizontal: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(124, 58, 237, 0.1)',
+    paddingBottom: 6,
+    paddingTop: 5,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: { width: 2, height: 4 },
     shadowOpacity: 0.05,
     shadowRadius: 8,
-    elevation: 4,
+
   },
   headerContent: {
     flexDirection: 'row',
@@ -499,7 +436,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: 'transparent',
   },
-  
+
   // Profile Header Styles
   profileHeader: {
     backgroundColor: 'white',
@@ -517,11 +454,14 @@ const styles = StyleSheet.create({
     paddingVertical: 32,
     paddingHorizontal: 20,
     alignItems: 'center',
-    backgroundImage: 'linear-gradient(135deg, #7C3AED 0%, #10B981 100%)',
+    backgroundImage: 'linear-gradient(135deg, #7C3AED 10%, #10B981 100%)',
   },
   avatarContainer: {
     position: 'relative',
     marginBottom: 16,
+    borderRadius: 50,
+    borderWidth: 1,
+    borderColor: 'blue',
   },
   avatar: {
     width: 100,
@@ -605,7 +545,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#E2E8F0',
     alignSelf: 'center',
   },
-  
+
   // Section Styles
   sectionContainer: {
     paddingHorizontal: 20,
@@ -638,7 +578,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
   },
-  
+
   // Bio Card
   bioCard: {
     backgroundColor: 'white',
@@ -663,7 +603,7 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     fontWeight: '500',
   },
-  
+
   // Wellness Grid
   wellnessGrid: {
     flexDirection: 'row',
@@ -707,7 +647,7 @@ const styles = StyleSheet.create({
     color: '#64748B',
     fontWeight: '600',
   },
-  
+
   // Double Section Layout
   doubleSection: {
     flexDirection: 'row',
@@ -738,7 +678,7 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
     elevation: 6,
   },
-  
+
   // Info Row
   infoRow: {
     flexDirection: 'row',
@@ -772,7 +712,7 @@ const styles = StyleSheet.create({
     color: '#1E293B',
     fontWeight: '600',
   },
-  
+
   // Goal Items
   goalItem: {
     flexDirection: 'row',
@@ -800,7 +740,7 @@ const styles = StyleSheet.create({
     color: '#475569',
     fontWeight: '500',
   },
-  
+
   // Medications
   medicationsCard: {
     backgroundColor: 'white',
@@ -834,7 +774,7 @@ const styles = StyleSheet.create({
     color: '#065F46',
     fontWeight: '600',
   },
-  
+
   // Contact Card
   contactCard: {
     backgroundColor: 'white',
@@ -846,7 +786,7 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
     elevation: 6,
   },
-  
+
   // Social Links
   socialLinksCard: {
     backgroundColor: 'white',
@@ -879,7 +819,7 @@ const styles = StyleSheet.create({
     color: '#475569',
     fontWeight: '600',
   },
-  
+
   // Appointments
   appointmentsContainer: {
     flexDirection: 'row',

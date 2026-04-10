@@ -9,13 +9,18 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
   StyleSheet,
-  SafeAreaView,
+
   StatusBar,
+  Animated,
 } from "react-native";
 import { sendMessageToChat } from '../api/chatapi';
-
 import { useState, useEffect, useRef } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import {
+  SafeAreaView,
+
+} from 'react-native-safe-area-context';
+
 
 export default function ChatScreen() {
   const [text, setText] = useState("");
@@ -42,7 +47,7 @@ export default function ChatScreen() {
         setMessages(JSON.parse(data));
       } else {
         const welcomeMsg = addMessage(
-          "Namaste! 🙏 I'm your Ayurvedic health assistant. How can I help you today?",
+          "Namaste 🙏\n\nI'm Swasthya, your personal Ayurvedic wellness companion. I'm here to guide you on your journey to holistic health and balance.",
           "ai"
         );
         setMessages([welcomeMsg]);
@@ -80,54 +85,51 @@ export default function ChatScreen() {
     return `${formattedHours}:${formattedMinutes} ${ampm}`;
   };
 
- const handleSend = async () => {
-  if (!text.trim()) return;
+  const handleSend = async () => {
+    if (!text.trim()) return;
 
-  const userMsg = addMessage(text, "user");
-  const updated = [...messages, userMsg];
+    const userMsg = addMessage(text, "user");
+    const updated = [...messages, userMsg];
 
-  setMessages(updated);
-  saveMessages(updated);
-  setText("");
-  setIsTyping(true);
+    setMessages(updated);
+    saveMessages(updated);
+    setText("");
+    setIsTyping(true);
 
-  try {
-    const userId = "user1";
-    const sessionId = "session1";
+    try {
+      const storedUserId = await AsyncStorage.getItem("USER_ID");
+      const userId = storedUserId ? Number(storedUserId) : 1;
+      const sessionId = 1;
 
-    // 🔥 CALL BACKEND HERE
-    const response = await sendMessageToChat(text, userId, sessionId);
+      const response = await sendMessageToChat(text, userId, sessionId);
 
-    console.log("API response:", response);
+      const aiData = response?.understanding || response;
 
-    const aiText =
-      response?.understanding?.message ||
-      response?.message ||
-      "Sorry, no reply from server.";
+      const aiMsg = {
+        ...addMessage("", "ai"),
+        structuredData: typeof aiData === 'object' ? aiData : null,
+        message: typeof aiData === 'string' ? aiData : (aiData?.message || "")
+      };
 
-    const aiMsg = addMessage(aiText, "ai");
+      const finalMsgs = [...updated, aiMsg];
 
-    const finalMsgs = [...updated, aiMsg];
+      setMessages(finalMsgs);
+      saveMessages(finalMsgs);
 
-    setMessages(finalMsgs);
-    saveMessages(finalMsgs);
+    } catch (error) {
+      console.log(error);
+      const errorMsg = addMessage("I'm having trouble connecting right now. Please try again in a moment. 🌿", "ai");
+      setMessages([...updated, errorMsg]);
+    }
 
-  } catch (error) {
-    console.log(error);
-
-    const errorMsg = addMessage("Server error 😢", "ai");
-    setMessages([...updated, errorMsg]);
-  }
-
-  setIsTyping(false);
-};
-
+    setIsTyping(false);
+  };
 
   const clearChat = async () => {
     try {
       await AsyncStorage.removeItem("CHAT");
       const welcomeMsg = addMessage(
-        "Namaste! 🙏 I'm your Ayurvedic health assistant. How can I help you today?",
+        "Namaste 🙏\n\nI'm Swasthya, your personal Ayurvedic wellness companion. I'm here to guide you on your journey to holistic health and balance.",
         "ai"
       );
       setMessages([welcomeMsg]);
@@ -137,66 +139,211 @@ export default function ChatScreen() {
     }
   };
 
+  const MessageBubble = ({ item, isUser, showTime }) => {
+    const fadeAnim = useRef(new Animated.Value(0)).current;
+    const slideAnim = useRef(new Animated.Value(20)).current;
+
+    useEffect(() => {
+      Animated.parallel([
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 400,
+          useNativeDriver: true,
+        }),
+        Animated.timing(slideAnim, {
+          toValue: 0,
+          duration: 400,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }, []);
+
+    const data = item.structuredData;
+    const hasReasons = data?.possible_reasons?.length > 0;
+    const hasDoActions = data?.actions?.do_actions?.length > 0;
+    const hasDontActions = data?.actions?.dont_actions?.length > 0;
+    const hasQuestions = data?.questions_to_ask?.length > 0;
+    const hasNotes = data?.notes?.length > 0;
+
+    return (
+      <Animated.View
+        style={[
+          styles.messageWrapper,
+          {
+            opacity: fadeAnim,
+            transform: [{ translateY: slideAnim }]
+          }
+        ]}
+      >
+        {showTime && (
+          <View style={styles.timestampContainer}>
+            <View style={styles.timestampPill}>
+              <Text style={styles.timestamp}>{formatTime(item.timestamp)}</Text>
+            </View>
+          </View>
+        )}
+
+        <View style={[styles.messageRow, isUser && styles.messageRowUser]}>
+          {!isUser && (
+            <View style={styles.avatarContainer}>
+              <View style={styles.avatar}>
+                <Text style={styles.avatarEmoji}>🌿</Text>
+              </View>
+            </View>
+          )}
+
+          <View style={[styles.bubble, isUser ? styles.bubbleUser : styles.bubbleAi]}>
+            {item.message ? (
+              <Text style={[styles.messageText, isUser && styles.messageTextUser]}>
+                {item.message}
+              </Text>
+            ) : null}
+
+            {data && (hasReasons || hasDoActions || hasDontActions || hasQuestions || hasNotes) && (
+              <View style={styles.structuredContent}>
+
+                {hasReasons && (
+                  <View style={styles.reasonsCard}>
+                    <View style={styles.cardHeader}>
+                      <View style={styles.iconCircle}>
+                        <Text style={styles.cardIcon}>💭</Text>
+                      </View>
+                      <Text style={styles.cardTitle}>Possible Causes</Text>
+                    </View>
+                    <View style={styles.cardBody}>
+                      {data.possible_reasons.map((reason, i) => (
+                        <View key={i} style={styles.reasonItem}>
+                          <View style={styles.reasonDot} />
+                          <Text style={styles.reasonText}>{reason}</Text>
+                        </View>
+                      ))}
+                    </View>
+                  </View>
+                )}
+
+                {(hasDoActions || hasDontActions) && (
+                  <View style={styles.carePlanCard}>
+                    <View style={styles.cardHeader}>
+                      <View style={styles.iconCircle}>
+                        <Text style={styles.cardIcon}>✨</Text>
+                      </View>
+                      <Text style={styles.cardTitle}>Your Wellness Plan</Text>
+                    </View>
+                    <View style={styles.cardBody}>
+                      {hasDoActions && data.actions.do_actions.map((action, i) => (
+                        <View key={`do-${i}`} style={styles.doAction}>
+                          <View style={styles.doIconWrapper}>
+                            <Text style={styles.actionIcon}>✓</Text>
+                          </View>
+                          <Text style={styles.actionText}>{action}</Text>
+                        </View>
+                      ))}
+
+                      {hasDontActions && data.actions.dont_actions.map((action, i) => (
+                        <View key={`dont-${i}`} style={styles.dontAction}>
+                          <View style={styles.dontIconWrapper}>
+                            <Text style={styles.actionIcon}>✕</Text>
+                          </View>
+                          <Text style={styles.actionText}>{action}</Text>
+                        </View>
+                      ))}
+                    </View>
+                  </View>
+                )}
+
+                {hasQuestions && (
+                  <View style={styles.questionsCard}>
+                    <View style={styles.cardHeader}>
+                      <View style={styles.iconCircle}>
+                        <Text style={styles.cardIcon}>💬</Text>
+                      </View>
+                      <Text style={styles.cardTitle}>Reflect & Observe</Text>
+                    </View>
+                    <View style={styles.cardBody}>
+                      {data.questions_to_ask.map((q, i) => (
+                        <View key={i} style={styles.questionItem}>
+                          <View style={styles.questionNumber}>
+                            <Text style={styles.questionNumberText}>{i + 1}</Text>
+                          </View>
+                          <Text style={styles.questionText}>{q}</Text>
+                        </View>
+                      ))}
+                    </View>
+                  </View>
+                )}
+
+                {hasNotes && (
+                  <View style={styles.noteCard}>
+                    <View style={styles.noteHeader}>
+                      <Text style={styles.noteIcon}>💡</Text>
+                      <Text style={styles.noteTitle}>Important Note</Text>
+                    </View>
+                    <Text style={styles.noteText}>{data.notes[0]}</Text>
+                  </View>
+                )}
+              </View>
+            )}
+          </View>
+        </View>
+      </Animated.View>
+    );
+  };
+
   const renderMessage = ({ item, index }) => {
     const isUser = item.sender === "user";
     const showTime =
       index === 0 ||
       (messages[index - 1] &&
         new Date(item.timestamp).getTime() -
-          new Date(messages[index - 1].timestamp).getTime() >
-          60000);
+        new Date(messages[index - 1].timestamp).getTime() >
+        60000);
 
-    return (
-      <View style={styles.messageWrapper}>
-        {showTime && (
-          <Text style={styles.timeStamp}>{formatTime(item.timestamp)}</Text>
-        )}
-        <View
-          style={[
-            styles.messageBubble,
-            isUser ? styles.userBubble : styles.aiBubble,
-          ]}
-        >
-          {!isUser && (
-            <View style={styles.aiIcon}>
-              <Text style={styles.aiIconText}>🌿</Text>
-            </View>
-          )}
-          <View
-            style={[
-              styles.messageContent,
-              isUser ? styles.userMessageContent : styles.aiMessageContent,
-            ]}
-          >
-            <Text
-              style={[
-                styles.messageText,
-                isUser ? styles.userText : styles.aiText,
-              ]}
-            >
-              {item.message}
-            </Text>
-          </View>
-        </View>
-      </View>
-    );
+    return <MessageBubble item={item} isUser={isUser} showTime={showTime} />;
   };
 
-  const renderTypingIndicator = () => {
+  const TypingIndicator = () => {
+    const dot1 = useRef(new Animated.Value(0)).current;
+    const dot2 = useRef(new Animated.Value(0)).current;
+    const dot3 = useRef(new Animated.Value(0)).current;
+
+    useEffect(() => {
+      const animate = (dot, delay) => {
+        Animated.loop(
+          Animated.sequence([
+            Animated.delay(delay),
+            Animated.timing(dot, {
+              toValue: -8,
+              duration: 400,
+              useNativeDriver: true,
+            }),
+            Animated.timing(dot, {
+              toValue: 0,
+              duration: 400,
+              useNativeDriver: true,
+            }),
+          ])
+        ).start();
+      };
+
+      animate(dot1, 0);
+      animate(dot2, 150);
+      animate(dot3, 300);
+    }, []);
+
     if (!isTyping) return null;
 
     return (
-      <View style={styles.typingContainer}>
-        <View style={[styles.messageBubble, styles.aiBubble]}>
-          <View style={styles.aiIcon}>
-            <Text style={styles.aiIconText}>🌿</Text>
+      <View style={styles.messageRow}>
+        <View style={styles.avatarContainer}>
+          <View style={styles.avatar}>
+            <Text style={styles.avatarEmoji}>🌿</Text>
           </View>
-          <View style={styles.typingBubble}>
-            <View style={styles.typingDots}>
-              <View style={styles.dot} />
-              <View style={styles.dot} />
-              <View style={styles.dot} />
-            </View>
+        </View>
+        <View style={[styles.bubble, styles.bubbleAi, styles.typingBubble]}>
+          <View style={styles.typingDots}>
+            <Animated.View style={[styles.typingDot, { transform: [{ translateY: dot1 }] }]} />
+            <Animated.View style={[styles.typingDot, { transform: [{ translateY: dot2 }] }]} />
+            <Animated.View style={[styles.typingDot, { transform: [{ translateY: dot3 }] }]} />
           </View>
         </View>
       </View>
@@ -205,61 +352,66 @@ export default function ChatScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#fff" />
+      <StatusBar barStyle="dark-content" backgroundColor="#fafaf9" />
 
+      {/* Header */}
       <View style={styles.header}>
-        <View style={styles.headerLeft}>
-          <View style={styles.headerIcon}>
-            <Text style={styles.headerIconText}>🌿</Text>
+        <View style={styles.headerContent}>
+          <View style={styles.headerLeft}>
+            <View style={styles.headerAvatarWrapper}>
+              <View style={styles.headerAvatar}>
+                <Text style={styles.headerAvatarEmoji}>🌿</Text>
+              </View>
+              <View style={styles.statusIndicator} />
+            </View>
+            <View style={styles.headerText}>
+              <Text style={styles.headerTitle}>Swasthya AI</Text>
+              <Text style={styles.headerSubtitle}>Ayurvedic Wellness Guide</Text>
+            </View>
           </View>
-          <View>
-            <Text style={styles.headerTitle}>Ayurvedic Assistant</Text>
-            <Text style={styles.headerSubtitle}>Online</Text>
-          </View>
+          <TouchableOpacity onPress={clearChat} style={styles.clearButton}>
+            <Text style={styles.clearButtonText}>Clear</Text>
+          </TouchableOpacity>
         </View>
-        <TouchableOpacity onPress={clearChat} style={styles.clearButton}>
-          <Text style={styles.clearButtonText}>Clear</Text>
-        </TouchableOpacity>
       </View>
 
       <KeyboardAvoidingView
-        style={styles.keyboardView}
+        style={styles.flex}
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
       >
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-          <View style={styles.chatContainer}>
+          <View style={styles.flex}>
             <FlatList
               ref={flatListRef}
-              style={styles.messagesList}
-              contentContainerStyle={styles.messagesContent}
+              style={styles.messageList}
+              contentContainerStyle={styles.messageListContent}
               data={messages}
               keyExtractor={(item) => item.id}
               renderItem={renderMessage}
               showsVerticalScrollIndicator={false}
-              ListFooterComponent={renderTypingIndicator}
+              ListFooterComponent={<TypingIndicator />}
             />
 
-            <View style={styles.inputContainer}>
-              <View style={styles.inputWrapper}>
+            {/* Input Area */}
+            <View style={styles.inputWrapper}>
+              <View style={styles.inputContainer}>
                 <TextInput
                   style={styles.input}
                   value={text}
                   onChangeText={setText}
-                  placeholder="Ask about diet, remedies, lifestyle..."
-                  placeholderTextColor="#9CA3AF"
+                  placeholder="Share your concerns..."
+                  placeholderTextColor="#a8a29e"
                   multiline
                   maxLength={500}
                 />
                 <TouchableOpacity
                   onPress={handleSend}
-                  style={[
-                    styles.sendButton,
-                    !text.trim() && styles.sendButtonDisabled,
-                  ]}
+                  style={[styles.sendButton, !text.trim() && styles.sendButtonDisabled]}
                   disabled={!text.trim()}
+                  activeOpacity={0.7}
                 >
-                  <Text style={styles.sendIcon}>➤</Text>
+                  <Text style={styles.sendIcon}>→</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -273,196 +425,397 @@ export default function ChatScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F8F9FA",
+    backgroundColor: '#fafaf9',
   },
+  flex: {
+    flex: 1,
+  },
+
+  // Header
   header: {
-    backgroundColor: "#fff",
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    padding: 16,
+    backgroundColor: '#fff',
     borderBottomWidth: 1,
-    borderBottomColor: "#E5E7EB",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 3,
+    borderBottomColor: '#e7e5e4',
+
+  },
+  headerContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingBottom: 16,
   },
   headerLeft: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
   },
-  headerIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: "#E8F5E9",
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: 12,
-    marginTop: 40,
+  headerAvatarWrapper: {
+    position: 'relative',
+    marginRight: 14,
   },
-  headerIconText: {
-    fontSize: 20,
-    
+  headerAvatar: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#dcfce7',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  headerAvatarEmoji: {
+    fontSize: 24,
+  },
+  statusIndicator: {
+    position: 'absolute',
+    bottom: 2,
+    right: 2,
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: '#22c55e',
+    borderWidth: 2,
+    borderColor: '#fff',
+  },
+  headerText: {
+    gap: 2,
   },
   headerTitle: {
-    fontSize: 20,
-    fontWeight: "600",
-    color: "#1A1A1A",
-    marginTop: 40,
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#1c1917',
+    letterSpacing: -0.3,
   },
   headerSubtitle: {
-    fontSize: 12,
-    color: "#10B981",
-    marginTop: 2,
+    fontSize: 13,
+    color: '#78716c',
+    fontWeight: '500',
   },
   clearButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 6,
-    backgroundColor: "#FEE2E2",
-    marginTop: 40,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    backgroundColor: '#fef2f2',
   },
   clearButtonText: {
     fontSize: 14,
-    fontWeight: "500",
-    color: "#DC2626",
+    fontWeight: '600',
+    color: '#dc2626',
   },
-  keyboardView: {
+
+  // Messages
+  messageList: {
     flex: 1,
   },
-  chatContainer: {
-    flex: 1,
+  messageListContent: {
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    paddingBottom: 40, // breathing room above input
   },
-  messagesList: {
-    flex: 1,
-  },
-  messagesContent: {
-    padding: 16,
-    paddingBottom: 8,
-  },
+
   messageWrapper: {
     marginBottom: 16,
   },
-  timeStamp: {
-    textAlign: "center",
-    fontSize: 12,
-    color: "#9CA3AF",
-    marginBottom: 12,
+  timestampContainer: {
+    alignItems: 'center',
+    marginBottom: 20,
   },
-  messageBubble: {
-    flexDirection: "row",
-    alignItems: "flex-end",
-    maxWidth: "80%",
-  },
-  userBubble: {
-    alignSelf: "flex-end",
-  },
-  aiBubble: {
-    alignSelf: "flex-start",
-  },
-  aiIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: "#E8F5E9",
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: 8,
-  },
-  aiIconText: {
-    fontSize: 16,
-  },
-  messageContent: {
-    borderRadius: 18,
-    paddingVertical: 10,
+  timestampPill: {
+    backgroundColor: '#f5f5f4',
     paddingHorizontal: 14,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
+    paddingVertical: 6,
+    borderRadius: 16,
   },
-  userMessageContent: {
-    backgroundColor: "#10B981",
+  timestamp: {
+    fontSize: 12,
+    color: '#78716c',
+    fontWeight: '500',
   },
-  aiMessageContent: {
-    backgroundColor: "#fff",
+  messageRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
   },
-  messageText: {
-    fontSize: 15,
-    lineHeight: 21,
+  messageRowUser: {
+    justifyContent: 'flex-end',
   },
-  userText: {
-    color: "#fff",
+  avatarContainer: {
+    marginRight: 12,
+    paddingTop: 4,
   },
-  aiText: {
-    color: "#1F2937",
-  },
-  typingContainer: {
-    marginBottom: 8,
-  },
-  typingBubble: {
-    backgroundColor: "#fff",
-    borderRadius: 18,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
-  },
-  typingDots: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-  },
-  dot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: "#D1D5DB",
-  },
-  inputContainer: {
-    backgroundColor: "#fff",
-    borderTopWidth: 1,
-    borderTopColor: "#E5E7EB",
-    padding: 12,
-  },
-  inputWrapper: {
-    flexDirection: "row",
-    alignItems: "flex-end",
-    backgroundColor: "#F3F4F6",
-    borderRadius: 24,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    minHeight: 48,
-  },
-  input: {
-    flex: 1,
-    fontSize: 15,
-    color: "#1F2937",
-    maxHeight: 100,
-    paddingVertical: 8,
-  },
-  sendButton: {
+  avatar: {
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: "#10B981",
-    alignItems: "center",
-    justifyContent: "center",
-    marginLeft: 8,
+    backgroundColor: '#dcfce7',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  avatarEmoji: {
+    fontSize: 18,
+  },
+
+  // Bubbles
+  bubble: {
+    maxWidth: '74%',
+    borderRadius: 20,
+    padding: 16,
+  },
+  bubbleUser: {
+    backgroundColor: '#22c55e',
+    borderBottomRightRadius: 4,
+  },
+  bubbleAi: {
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#e7e5e4',
+    borderBottomLeftRadius: 4,
+  },
+  messageText: {
+    fontSize: 16,
+    lineHeight: 24,
+    color: '#292524',
+  },
+  messageTextUser: {
+    color: '#fff',
+  },
+
+  // Structured Content
+  structuredContent: {
+    marginTop: 14,
+    gap: 12,
+    backgroundColor: '#fafafa', // VERY subtle
+    borderRadius: 16,
+    padding: 12,
+  },
+
+
+  // Cards
+  reasonsCard: {
+    backgroundColor: '#f9fafb',
+    borderRadius: 16,
+    padding: 14,
+    borderLeftWidth: 3,
+    borderLeftColor: '#8b5cf6',
+  },
+  carePlanCard: {
+    backgroundColor: '#f0fdf4',
+    borderRadius: 16,
+    padding: 16,
+    borderLeftWidth: 3,
+    borderLeftColor: '#22c55e',
+  },
+  questionsCard: {
+    backgroundColor: '#fef3c7',
+    borderRadius: 16,
+    padding: 16,
+    borderLeftWidth: 3,
+    borderLeftColor: '#f59e0b',
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+
+  iconCircle: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.5)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 10,
+  },
+  cardIcon: {
+    fontSize: 16,
+  },
+  cardTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#1c1917',
+    letterSpacing: -0.2,
+  },
+  cardBody: {
+    gap: 10,
+  },
+
+  // Reasons
+  reasonItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  reasonDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#8b5cf6',
+    marginTop: 8,
+    marginRight: 10,
+  },
+  reasonText: {
+    flex: 1,
+    fontSize: 15,
+    lineHeight: 22,
+    color: '#44403c',
+  },
+
+  // Actions
+  doAction: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    backgroundColor: 'rgba(255, 255, 255, 0.6)',
+    borderRadius: 12,
+    padding: 12,
+  },
+  dontAction: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    backgroundColor: 'rgba(254, 226, 226, 0.4)',
+    borderRadius: 12,
+    padding: 12,
+  },
+  doIconWrapper: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: '#22c55e',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 10,
+  },
+  dontIconWrapper: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: '#ef4444',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 10,
+  },
+  actionIcon: {
+    fontSize: 14,
+    color: '#fff',
+    fontWeight: '700',
+  },
+  actionText: {
+    flex: 1,
+    fontSize: 15,
+    lineHeight: 22,
+    color: '#44403c',
+  },
+
+  // Questions
+  questionItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  questionNumber: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: '#f59e0b',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 10,
+    marginTop: 2,
+  },
+  questionNumberText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#fff',
+  },
+  questionText: {
+    flex: 1,
+    fontSize: 15,
+    lineHeight: 22,
+    color: '#44403c',
+  },
+
+  // Note
+  noteCard: {
+    backgroundColor: '#fffbeb',
+    borderRadius: 16,
+    padding: 16,
+    borderLeftWidth: 3,
+    borderLeftColor: '#f59e0b',
+  },
+  noteHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  noteIcon: {
+    fontSize: 18,
+    marginRight: 8,
+  },
+  noteTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#92400e',
+    letterSpacing: -0.2,
+  },
+  noteText: {
+    fontSize: 15,
+    lineHeight: 22,
+    color: '#78350f',
+  },
+
+  // Typing
+  typingBubble: {
+    paddingVertical: 20,
+    paddingHorizontal: 20,
+  },
+  typingDots: {
+    flexDirection: 'row',
+    gap: 6,
+  },
+  typingDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#d6d3d1',
+  },
+
+  // Input
+  inputWrapper: {
+    backgroundColor: '#fff',
+    borderTopWidth: 1,
+    borderTopColor: '#e7e5e4',
+    paddingHorizontal: 12,
+    paddingTop: 10,
+    paddingBottom: Platform.OS === 'ios' ? 24 : 16,
+  },
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    backgroundColor: '#f5f5f4',
+    borderRadius: 20,
+    paddingLeft: 10,
+    paddingRight: 6,
+    paddingVertical: 6,
+    borderWidth: 1,
+    borderColor: '#e7e5e4',
+  },
+  input: {
+    flex: 1,
+    fontSize: 16,
+    color: '#1c1917',
+    maxHeight: 100,
+    paddingVertical: 10,
+    paddingRight: 12,
+  },
+  sendButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#22c55e',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   sendButtonDisabled: {
-    backgroundColor: "#D1D5DB",
+    backgroundColor: '#47f38fff',
   },
   sendIcon: {
-    fontSize: 18,
-    color: "#fff",
-    fontWeight: "600",
+    fontSize: 20,
+    color: '#fff',
+    fontWeight: '600',
   },
 });
