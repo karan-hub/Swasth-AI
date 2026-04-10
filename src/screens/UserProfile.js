@@ -5,14 +5,22 @@ import {
   TouchableOpacity,
   StyleSheet,
   ScrollView,
+<<<<<<< HEAD
   Image,
   Dimensions,
+=======
+  Switch,
+  SafeAreaView,
+  StatusBar,
+  Alert,
+>>>>>>> 733bef07f557dc9f8b47c8e7bb6aa5830ff4db1a
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import {
   SafeAreaView,
 } from 'react-native-safe-area-context';
 
+<<<<<<< HEAD
 const { width } = Dimensions.get('window');
 
 // ============================================
@@ -109,10 +117,13 @@ const sampleUser = createUserProfile({
   }
 });
 
+=======
+>>>>>>> 733bef07f557dc9f8b47c8e7bb6aa5830ff4db1a
 // ============================================
 // COMPONENTS
 // ============================================
 
+<<<<<<< HEAD
 // Info Row Component
 const InfoRow = ({ label, value, icon, color = '#7C3AED' }) => (
   <View style={styles.infoRow}>
@@ -264,128 +275,465 @@ const ProfileScreen = ({ user }) => (
           color="#EC4899"
         />
       </View>
+=======
+const SettingRow = ({
+  icon,
+  iconBg,
+  iconColor,
+  title,
+  subtitle,
+  onPress,
+  rightElement,
+  danger = false,
+}) => (
+  <TouchableOpacity
+    style={styles.row}
+    onPress={onPress}
+    activeOpacity={onPress ? 0.6 : 1}
+  >
+    <View style={[styles.rowIcon, { backgroundColor: danger ? '#FEF2F2' : iconBg }]}>
+      <Ionicons
+        name={icon}
+        size={19}
+        color={danger ? '#DC2626' : iconColor}
+      />
     </View>
-
-    {/* Lifestyle & Wellness Goals */}
-    <View style={styles.doubleSection}>
-      <View style={styles.halfSection}>
-        <View style={styles.sectionHeader}>
-          <Ionicons name="restaurant-outline" size={18} color="#059669" />
-          <Text style={styles.sectionTitleSmall}>Lifestyle</Text>
-        </View>
-        <View style={styles.lifestyleCard}>
-          <InfoRow label="Diet" value={user.lifestyle.diet} icon="nutrition-outline" color="#059669" />
-          <InfoRow label="Exercise" value={user.lifestyle.exercise} icon="fitness-outline" color="#3B82F6" />
-          <InfoRow label="Sleep" value={user.lifestyle.sleep} icon="bed-outline" color="#8B5CF6" />
-          <InfoRow label="Stress" value={user.lifestyle.stressLevel} icon="flash-outline" color="#DC2626" />
-        </View>
-      </View>
-
-      <View style={styles.halfSection}>
-        <View style={styles.sectionHeader}>
-          <Ionicons name="trophy-outline" size={18} color="#7C3AED" />
-          <Text style={styles.sectionTitleSmall}>Wellness Goals</Text>
-        </View>
-        <View style={styles.goalsCard}>
-          {user.wellnessGoals.map((goal, index) => (
-            <GoalItem key={index} goal={goal} index={index} />
-          ))}
-        </View>
-      </View>
+    <View style={styles.rowBody}>
+      <Text style={[styles.rowTitle, danger && styles.dangerText]}>{title}</Text>
+      {subtitle ? <Text style={styles.rowSub}>{subtitle}</Text> : null}
     </View>
-
-    {/* Ayurvedic Medications */}
-    <View style={styles.sectionContainer}>
-      <View style={styles.sectionHeader}>
-        <Ionicons name="leaf-outline" size={20} color="#059669" />
-        <Text style={styles.sectionTitle}>Ayurvedic Medications</Text>
-        <TouchableOpacity style={styles.viewAllButton}>
-          <Text style={styles.viewAllText}>View All</Text>
-          <Ionicons name="chevron-forward" size={16} color="#7C3AED" />
-        </TouchableOpacity>
-      </View>
-      <View style={styles.medicationsCard}>
-        {user.medications.map((medication, index) => (
-          <MedicationItem key={index} medication={medication} />
-        ))}
-      </View>
+    <View style={styles.rowRight}>
+      {rightElement}
+>>>>>>> 733bef07f557dc9f8b47c8e7bb6aa5830ff4db1a
     </View>
+  </TouchableOpacity>
+);
 
-    {/* Contact Information */}
-    <View style={styles.sectionContainer}>
-      <View style={styles.sectionHeader}>
-        <Ionicons name="call-outline" size={20} color="#3B82F6" />
-        <Text style={styles.sectionTitle}>Contact Information</Text>
-      </View>
-      <View style={styles.contactCard}>
-        <InfoRow label="Email" value={user.email} icon="mail-outline" color="#EC4899" />
-        <InfoRow label="Phone" value={user.phoneNumber} icon="call-outline" color="#3B82F6" />
-        <InfoRow label="Location" value={user.address.city} icon="location-outline" color="#10B981" />
-        <InfoRow label="Member Since" value={user.createdAt.toLocaleDateString()} icon="calendar-outline" color="#8B5CF6" />
-      </View>
+const SettingToggle = ({
+  icon,
+  iconBg,
+  iconColor,
+  title,
+  subtitle,
+  value,
+  onValueChange,
+}) => (
+  <View style={styles.row}>
+    <View style={[styles.rowIcon, { backgroundColor: iconBg }]}>
+      <Ionicons name={icon} size={19} color={iconColor} />
     </View>
+    <View style={styles.rowBody}>
+      <Text style={styles.rowTitle}>{title}</Text>
+      {subtitle ? <Text style={styles.rowSub}>{subtitle}</Text> : null}
+    </View>
+    <Switch
+      value={value}
+      onValueChange={onValueChange}
+      trackColor={{ false: '#E2E8F0', true: '#10B981' }}
+      thumbColor="#ffffff"
+      ios_backgroundColor="#E2E8F0"
+    />
+  </View>
+);
 
+const BadgeValue = ({ label, green = false }) => (
+  <View style={[styles.badge, green && styles.badgeGreen]}>
+    <Text style={[styles.badgeText, green && styles.badgeGreenText]}>{label}</Text>
+  </View>
+);
+
+<<<<<<< HEAD
 
     <View style={{ height: 30 }} />
   </ScrollView>
+=======
+const SectionLabel = ({ title }) => (
+  <Text style={styles.sectionLabel}>{title}</Text>
+>>>>>>> 733bef07f557dc9f8b47c8e7bb6aa5830ff4db1a
 );
 
 // ============================================
-// MAIN APP COMPONENT
+// SETTINGS SCREEN
 // ============================================
 
-const App = () => {
+const SettingsScreen = ({ navigation, user }) => {
+  // Notification toggles
+  const [pushNotif, setPushNotif] = useState(true);
+  const [wellnessReminders, setWellnessReminders] = useState(true);
+  const [appointmentAlerts, setAppointmentAlerts] = useState(true);
+  const [emailUpdates, setEmailUpdates] = useState(false);
+
+  // Privacy toggles
+  const [twoFactor, setTwoFactor] = useState(false);
+  const [dataSharing, setDataSharing] = useState(true);
+
+  const handleSignOut = () => {
+    Alert.alert(
+      'Sign Out',
+      'Are you sure you want to sign out?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Sign Out',
+          style: 'destructive',
+          onPress: () => navigation?.replace('Login'),
+        },
+      ]
+    );
+  };
+
+  const handleDeleteAccount = () => {
+    Alert.alert(
+      'Delete Account',
+      'This action is permanent and cannot be undone. All your data will be removed.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Delete', style: 'destructive', onPress: () => {} },
+      ]
+    );
+  };
+
   return (
     <SafeAreaView style={styles.container}>
+<<<<<<< HEAD
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerContent}>
           <View style={styles.headerLeft}>
             <Text style={styles.headerTitle}>Ayurvedic Profile</Text>
+=======
+      <StatusBar barStyle="dark-content" backgroundColor="#F8FAFC" />
+
+      {/* Background decorations */}
+      <View style={styles.bgCircle1} />
+      <View style={styles.bgCircle2} />
+
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
+
+        {/* Header */}
+        <View style={styles.header}>
+          <View>
+            <Text style={styles.headerTitle}>Settings</Text>
+            <Text style={styles.headerSub}>Manage your preferences</Text>
+>>>>>>> 733bef07f557dc9f8b47c8e7bb6aa5830ff4db1a
           </View>
-          <TouchableOpacity style={styles.editButton}>
-            <Ionicons name="create-outline" size={22} color="#7C3AED" />
-            <Text style={styles.editButtonText}>Edit</Text>
+          <TouchableOpacity style={styles.saveBtn}>
+            <Text style={styles.saveBtnText}>Save Changes</Text>
           </TouchableOpacity>
         </View>
-      </View>
 
-      {/* Profile Content */}
-      <View style={styles.content}>
-        <ProfileScreen user={sampleUser} />
-      </View>
+        {/* Profile Banner */}
+        <View style={styles.profileBanner}>
+          <View style={styles.bannerAvatar}>
+            <Text style={styles.bannerAvatarText}>
+              {(user?.firstName?.[0] ?? 'J') + (user?.lastName?.[0] ?? 'D')}
+            </Text>
+          </View>
+          <View style={styles.bannerInfo}>
+            <Text style={styles.bannerName}>
+              {user ? `${user.firstName} ${user.lastName}` : 'John Doe'}
+            </Text>
+            <Text style={styles.bannerEmail}>
+              {user?.email ?? 'john.doe@ayurveda.com'}
+            </Text>
+          </View>
+          <TouchableOpacity
+            style={styles.bannerEditBtn}
+            onPress={() => navigation?.navigate('EditProfile')}
+          >
+            <Text style={styles.bannerEditText}>Edit Profile</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* ── Ayurvedic Profile ── */}
+        <View style={styles.section}>
+          <SectionLabel title="Ayurvedic Profile" />
+          <View style={styles.card}>
+            <SettingRow
+              icon="flame-outline"
+              iconBg="#EDE9FE"
+              iconColor="#7C3AED"
+              title="Prakriti Type"
+              subtitle="Your body constitution"
+              onPress={() => navigation?.navigate('PrakritiDetail')}
+              rightElement={
+                <>
+                  <BadgeValue label={user?.dosha ?? 'Vata-Pitta'} />
+                  <Ionicons name="chevron-forward" size={16} color="#CBD5E0" />
+                </>
+              }
+            />
+            <SettingRow
+              icon="trophy-outline"
+              iconBg="#D1FAE5"
+              iconColor="#059669"
+              title="Health Goals"
+              subtitle={`${user?.wellnessGoals?.length ?? 4} active goals`}
+              onPress={() => navigation?.navigate('HealthGoals')}
+              rightElement={<Ionicons name="chevron-forward" size={16} color="#CBD5E0" />}
+            />
+            <SettingRow
+              icon="leaf-outline"
+              iconBg="#FEF3C7"
+              iconColor="#D97706"
+              title="Current Medications"
+              subtitle={user?.medications?.join(', ') ?? 'Ashwagandha, Turmeric, Triphala'}
+              onPress={() => navigation?.navigate('Medications')}
+              rightElement={<Ionicons name="chevron-forward" size={16} color="#CBD5E0" />}
+            />
+            <SettingRow
+              icon="pulse-outline"
+              iconBg="#DBEAFE"
+              iconColor="#1D4ED8"
+              title="Health Score"
+              subtitle="Last updated today"
+              onPress={() => navigation?.navigate('HealthScore')}
+              rightElement={
+                <>
+                  <BadgeValue label={`${user?.healthScore ?? 85}%`} green />
+                  <Ionicons name="chevron-forward" size={16} color="#CBD5E0" />
+                </>
+              }
+            />
+          </View>
+        </View>
+
+        {/* ── Notifications ── */}
+        <View style={styles.section}>
+          <SectionLabel title="Notifications" />
+          <View style={styles.card}>
+            <SettingToggle
+              icon="notifications-outline"
+              iconBg="#EDE9FE"
+              iconColor="#7C3AED"
+              title="Push Notifications"
+              subtitle="Reminders & daily tips"
+              value={pushNotif}
+              onValueChange={setPushNotif}
+            />
+            <SettingToggle
+              icon="heart-outline"
+              iconBg="#D1FAE5"
+              iconColor="#059669"
+              title="Wellness Reminders"
+              subtitle="Morning & evening routine"
+              value={wellnessReminders}
+              onValueChange={setWellnessReminders}
+            />
+            <SettingToggle
+              icon="calendar-outline"
+              iconBg="#FEF3C7"
+              iconColor="#D97706"
+              title="Appointment Alerts"
+              subtitle="48h & 1h before"
+              value={appointmentAlerts}
+              onValueChange={setAppointmentAlerts}
+            />
+            <SettingToggle
+              icon="mail-outline"
+              iconBg="#FCE7F3"
+              iconColor="#DB2777"
+              title="Email Updates"
+              subtitle="Weekly wellness digest"
+              value={emailUpdates}
+              onValueChange={setEmailUpdates}
+            />
+          </View>
+        </View>
+
+        {/* ── Appearance ── */}
+        <View style={styles.section}>
+          <SectionLabel title="Appearance" />
+          <View style={styles.card}>
+            <SettingRow
+              icon="contrast-outline"
+              iconBg="#EDE9FE"
+              iconColor="#7C3AED"
+              title="Theme"
+              subtitle="System default"
+              onPress={() => navigation?.navigate('ThemeSettings')}
+              rightElement={
+                <>
+                  <BadgeValue label="Auto" />
+                  <Ionicons name="chevron-forward" size={16} color="#CBD5E0" />
+                </>
+              }
+            />
+            <SettingRow
+              icon="globe-outline"
+              iconBg="#D1FAE5"
+              iconColor="#059669"
+              title="Language"
+              subtitle="App display language"
+              onPress={() => navigation?.navigate('LanguageSettings')}
+              rightElement={
+                <>
+                  <BadgeValue label="English" />
+                  <Ionicons name="chevron-forward" size={16} color="#CBD5E0" />
+                </>
+              }
+            />
+            <SettingRow
+              icon="options-outline"
+              iconBg="#FEF3C7"
+              iconColor="#D97706"
+              title="Units"
+              subtitle="Height, weight & temperature"
+              onPress={() => navigation?.navigate('UnitsSettings')}
+              rightElement={
+                <>
+                  <BadgeValue label="Metric" />
+                  <Ionicons name="chevron-forward" size={16} color="#CBD5E0" />
+                </>
+              }
+            />
+          </View>
+        </View>
+
+        {/* ── Privacy & Security ── */}
+        <View style={styles.section}>
+          <SectionLabel title="Privacy & Security" />
+          <View style={styles.card}>
+            <SettingRow
+              icon="lock-closed-outline"
+              iconBg="#EDE9FE"
+              iconColor="#7C3AED"
+              title="Change Password"
+              subtitle="Last changed 3 months ago"
+              onPress={() => navigation?.navigate('ChangePassword')}
+              rightElement={<Ionicons name="chevron-forward" size={16} color="#CBD5E0" />}
+            />
+            <SettingToggle
+              icon="shield-checkmark-outline"
+              iconBg="#D1FAE5"
+              iconColor="#059669"
+              title="Two-Factor Auth"
+              subtitle="Extra account security"
+              value={twoFactor}
+              onValueChange={setTwoFactor}
+            />
+            <SettingToggle
+              icon="eye-outline"
+              iconBg="#FEF3C7"
+              iconColor="#D97706"
+              title="Data Sharing"
+              subtitle="Anonymous usage analytics"
+              value={dataSharing}
+              onValueChange={setDataSharing}
+            />
+            <SettingRow
+              icon="document-text-outline"
+              iconBg="#DBEAFE"
+              iconColor="#1D4ED8"
+              title="Privacy Policy"
+              subtitle="How we use your data"
+              onPress={() => navigation?.navigate('PrivacyPolicy')}
+              rightElement={<Ionicons name="chevron-forward" size={16} color="#CBD5E0" />}
+            />
+          </View>
+        </View>
+
+        {/* ── Support ── */}
+        <View style={styles.section}>
+          <SectionLabel title="Support" />
+          <View style={styles.card}>
+            <SettingRow
+              icon="help-circle-outline"
+              iconBg="#D1FAE5"
+              iconColor="#059669"
+              title="Help & FAQ"
+              subtitle="Common questions answered"
+              onPress={() => navigation?.navigate('Help')}
+              rightElement={<Ionicons name="chevron-forward" size={16} color="#CBD5E0" />}
+            />
+            <SettingRow
+              icon="chatbubble-outline"
+              iconBg="#EDE9FE"
+              iconColor="#7C3AED"
+              title="Contact Support"
+              subtitle="Mon–Fri, 9am–6pm IST"
+              onPress={() => navigation?.navigate('Support')}
+              rightElement={<Ionicons name="chevron-forward" size={16} color="#CBD5E0" />}
+            />
+            <SettingRow
+              icon="star-outline"
+              iconBg="#FEF3C7"
+              iconColor="#D97706"
+              title="Rate the App"
+              subtitle="Share your experience"
+              onPress={() => {}}
+              rightElement={<Ionicons name="chevron-forward" size={16} color="#CBD5E0" />}
+            />
+          </View>
+        </View>
+
+        {/* ── Account ── */}
+        <View style={styles.section}>
+          <SectionLabel title="Account" />
+          <View style={styles.card}>
+            <SettingRow
+              icon="log-out-outline"
+              iconBg="#FEF2F2"
+              iconColor="#DC2626"
+              title="Sign Out"
+              subtitle="You'll need to log in again"
+              onPress={handleSignOut}
+              danger
+              rightElement={<Ionicons name="chevron-forward" size={16} color="#FCA5A5" />}
+            />
+            <SettingRow
+              icon="trash-outline"
+              iconBg="#FEF2F2"
+              iconColor="#DC2626"
+              title="Delete Account"
+              subtitle="Permanent — cannot be undone"
+              onPress={handleDeleteAccount}
+              danger
+              rightElement={<Ionicons name="chevron-forward" size={16} color="#FCA5A5" />}
+            />
+          </View>
+        </View>
+
+
+        <View style={{ height: 30 }} />
+      </ScrollView>
     </SafeAreaView>
   );
 };
 
-// ============================================
-// STYLES
-// ============================================
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F8FAFC',
   },
-  backgroundCircle1: {
+  bgCircle1: {
     position: 'absolute',
-    top: -100,
-    right: -50,
+    top: -80,
+    right: -40,
     width: 200,
     height: 200,
     borderRadius: 100,
     backgroundColor: 'rgba(124, 58, 237, 0.05)',
+    pointerEvents: 'none',
   },
-  backgroundCircle2: {
+  bgCircle2: {
     position: 'absolute',
-    top: 50,
+    top: 260,
     left: -100,
-    width: 300,
-    height: 300,
-    borderRadius: 150,
+    width: 280,
+    height: 280,
+    borderRadius: 140,
     backgroundColor: 'rgba(16, 185, 129, 0.03)',
+    pointerEvents: 'none',
   },
+  scroll: {
+    paddingBottom: 20,
+  },
+
+  // Header
   header: {
+<<<<<<< HEAD
     backgroundColor: 'white',
     paddingHorizontal: 20,
     paddingBottom: 6,
@@ -397,16 +745,17 @@ const styles = StyleSheet.create({
 
   },
   headerContent: {
+=======
+>>>>>>> 733bef07f557dc9f8b47c8e7bb6aa5830ff4db1a
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-between',
-  },
-  headerLeft: {
-    flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    paddingBottom: 16,
   },
   headerTitle: {
+<<<<<<< HEAD
     fontSize: 22,
     fontWeight: '700',
     color: '#1E293B',
@@ -484,100 +833,169 @@ const styles = StyleSheet.create({
     padding: 2,
   },
   profileName: {
+=======
+>>>>>>> 733bef07f557dc9f8b47c8e7bb6aa5830ff4db1a
     fontSize: 28,
     fontWeight: '800',
-    color: 'white',
-    marginBottom: 4,
-  },
-  usernameContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    marginBottom: 12,
-  },
-  username: {
-    fontSize: 16,
-    color: 'rgba(255, 255, 255, 0.9)',
-    fontWeight: '500',
-  },
-  doshaTag: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    backdropFilter: 'blur(10px)',
-  },
-  doshaText: {
-    color: 'white',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  statsContainer: {
-    flexDirection: 'row',
-    backgroundColor: 'white',
-    paddingVertical: 20,
-    paddingHorizontal: 40,
-    justifyContent: 'center',
-  },
-  statItem: {
-    alignItems: 'center',
-    flex: 1,
-  },
-  statValue: {
-    fontSize: 24,
-    fontWeight: '800',
     color: '#1E293B',
-    marginBottom: 4,
   },
-  statLabel: {
-    fontSize: 12,
-    color: '#64748B',
-    fontWeight: '600',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
+  headerSub: {
+    fontSize: 13,
+    color: '#94A3B8',
+    fontWeight: '500',
+    marginTop: 2,
   },
-  statDivider: {
-    width: 1,
-    height: '60%',
-    backgroundColor: '#E2E8F0',
-    alignSelf: 'center',
+  saveBtn: {
+    backgroundColor: '#7C3AED',
+    borderRadius: 20,
+    paddingHorizontal: 18,
+    paddingVertical: 9,
+  },
+  saveBtnText: {
+    color: '#fff',
+    fontSize: 13,
+    fontWeight: '700',
   },
 
+  // Profile Banner
+  profileBanner: {
+    marginHorizontal: 20,
+    marginBottom: 20,
+    backgroundColor: '#7C3AED',
+    borderRadius: 20,
+    padding: 18,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+    overflow: 'hidden',
+  },
+  bannerAvatar: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    borderWidth: 2,
+    borderColor: 'rgba(255,255,255,0.4)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
+  bannerAvatarText: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#fff',
+  },
+  bannerInfo: {
+    flex: 1,
+  },
+  bannerName: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#fff',
+    marginBottom: 3,
+  },
+  bannerEmail: {
+    fontSize: 12,
+    color: 'rgba(255,255,255,0.7)',
+  },
+  bannerEditBtn: {
+    backgroundColor: 'rgba(255,255,255,0.18)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.3)',
+    borderRadius: 14,
+    paddingHorizontal: 14,
+    paddingVertical: 7,
+  },
+  bannerEditText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: '700',
+  },
+
+  // Section
+  section: {
+    marginBottom: 18,
+  },
+  sectionLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#94A3B8',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    marginBottom: 10,
+    paddingHorizontal: 24,
+  },
+  card: {
+    backgroundColor: '#fff',
+    marginHorizontal: 20,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
+    overflow: 'hidden',
+  },
+
+<<<<<<< HEAD
   // Section Styles
   sectionContainer: {
     paddingHorizontal: 20,
     marginBottom: 20,
   },
   sectionHeader: {
+=======
+  // Row
+  row: {
+>>>>>>> 733bef07f557dc9f8b47c8e7bb6aa5830ff4db1a
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
-    marginBottom: 16,
+    gap: 14,
+    paddingHorizontal: 16,
+    paddingVertical: 13,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F8FAFC',
   },
-  sectionTitle: {
-    fontSize: 18,
+  rowIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
+  rowBody: {
+    flex: 1,
+  },
+  rowTitle: {
+    fontSize: 15,
     fontWeight: '700',
     color: '#1E293B',
   },
-  sectionTitleSmall: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#1E293B',
+  rowSub: {
+    fontSize: 12,
+    color: '#94A3B8',
+    marginTop: 2,
   },
-  viewAllButton: {
+  rowRight: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
-    marginLeft: 'auto',
+    gap: 8,
   },
-  viewAllText: {
+  dangerText: {
+    color: '#DC2626',
+  },
+
+  // Badge
+  badge: {
+    backgroundColor: '#EDE9FE',
+    borderRadius: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+  },
+  badgeText: {
+    fontSize: 12,
+    fontWeight: '700',
     color: '#7C3AED',
-    fontSize: 14,
-    fontWeight: '600',
   },
+<<<<<<< HEAD
 
   // Bio Card
   bioCard: {
@@ -590,13 +1008,15 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
     elevation: 6,
     position: 'relative',
+=======
+  badgeGreen: {
+    backgroundColor: '#D1FAE5',
+>>>>>>> 733bef07f557dc9f8b47c8e7bb6aa5830ff4db1a
   },
-  quoteIcon: {
-    position: 'absolute',
-    top: 10,
-    left: 10,
-    opacity: 0.5,
+  badgeGreenText: {
+    color: '#059669',
   },
+<<<<<<< HEAD
   bio: {
     fontSize: 15,
     color: '#475569',
@@ -624,10 +1044,15 @@ const styles = StyleSheet.create({
   },
   wellnessHeader: {
     flexDirection: 'row',
+=======
+
+  // Version card
+  versionCard: {
+>>>>>>> 733bef07f557dc9f8b47c8e7bb6aa5830ff4db1a
     alignItems: 'center',
-    gap: 8,
-    marginBottom: 12,
+    paddingVertical: 22,
   },
+<<<<<<< HEAD
   wellnessTitle: {
     fontSize: 14,
     fontWeight: '600',
@@ -840,18 +1265,39 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
+=======
+  versionDot: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#EDE9FE',
+    alignItems: 'center',
+    justifyContent: 'center',
+>>>>>>> 733bef07f557dc9f8b47c8e7bb6aa5830ff4db1a
     marginBottom: 8,
   },
-  appointmentTitle: {
-    fontSize: 14,
-    color: '#475569',
-    fontWeight: '600',
-  },
-  appointmentDate: {
-    fontSize: 18,
+  versionAppName: {
+    fontSize: 16,
     fontWeight: '800',
     color: '#1E293B',
+    marginBottom: 4,
+  },
+  versionNum: {
+    fontSize: 12,
+    color: '#94A3B8',
+    marginBottom: 8,
+  },
+  versionBadge: {
+    backgroundColor: '#D1FAE5',
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+  },
+  versionBadgeText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#065F46',
   },
 });
 
-export default App;
+export default SettingsScreen;

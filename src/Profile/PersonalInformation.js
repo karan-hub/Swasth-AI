@@ -73,7 +73,8 @@ const UserProfileSetup = () => {
     if (currentStep < totalSteps) {
       setCurrentStep((prev) => prev + 1);
     } else {
-      handleSaveProfile(); // save first
+      // handleSaveProfile(); // save first
+       navigation.replace("MainTabs", { screen: "Chat" });
     }
   };
 
