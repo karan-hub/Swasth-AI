@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -9,8 +9,8 @@ import {
   SafeAreaView,
   StatusBar,
   Alert,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 
 // ============================================
 // COMPONENTS
@@ -31,20 +31,18 @@ const SettingRow = ({
     onPress={onPress}
     activeOpacity={onPress ? 0.6 : 1}
   >
-    <View style={[styles.rowIcon, { backgroundColor: danger ? '#FEF2F2' : iconBg }]}>
-      <Ionicons
-        name={icon}
-        size={19}
-        color={danger ? '#DC2626' : iconColor}
-      />
+    <View
+      style={[styles.rowIcon, { backgroundColor: danger ? "#FEF2F2" : iconBg }]}
+    >
+      <Ionicons name={icon} size={19} color={danger ? "#DC2626" : iconColor} />
     </View>
     <View style={styles.rowBody}>
-      <Text style={[styles.rowTitle, danger && styles.dangerText]}>{title}</Text>
+      <Text style={[styles.rowTitle, danger && styles.dangerText]}>
+        {title}
+      </Text>
       {subtitle ? <Text style={styles.rowSub}>{subtitle}</Text> : null}
     </View>
-    <View style={styles.rowRight}>
-      {rightElement}
-    </View>
+    <View style={styles.rowRight}>{rightElement}</View>
   </TouchableOpacity>
 );
 
@@ -68,7 +66,7 @@ const SettingToggle = ({
     <Switch
       value={value}
       onValueChange={onValueChange}
-      trackColor={{ false: '#E2E8F0', true: '#10B981' }}
+      trackColor={{ false: "#E2E8F0", true: "#10B981" }}
       thumbColor="#ffffff"
       ios_backgroundColor="#E2E8F0"
     />
@@ -77,7 +75,9 @@ const SettingToggle = ({
 
 const BadgeValue = ({ label, green = false }) => (
   <View style={[styles.badge, green && styles.badgeGreen]}>
-    <Text style={[styles.badgeText, green && styles.badgeGreenText]}>{label}</Text>
+    <Text style={[styles.badgeText, green && styles.badgeGreenText]}>
+      {label}
+    </Text>
   </View>
 );
 
@@ -101,28 +101,24 @@ const SettingsScreen = ({ navigation, user }) => {
   const [dataSharing, setDataSharing] = useState(true);
 
   const handleSignOut = () => {
-    Alert.alert(
-      'Sign Out',
-      'Are you sure you want to sign out?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Sign Out',
-          style: 'destructive',
-          onPress: () => navigation?.replace('Login'),
-        },
-      ]
-    );
+    Alert.alert("Sign Out", "Are you sure you want to sign out?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Sign Out",
+        style: "destructive",
+        onPress: () => navigation?.replace("Login"),
+      },
+    ]);
   };
 
   const handleDeleteAccount = () => {
     Alert.alert(
-      'Delete Account',
-      'This action is permanent and cannot be undone. All your data will be removed.',
+      "Delete Account",
+      "This action is permanent and cannot be undone. All your data will be removed.",
       [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Delete', style: 'destructive', onPress: () => {} },
-      ]
+        { text: "Cancel", style: "cancel" },
+        { text: "Delete", style: "destructive", onPress: () => {} },
+      ],
     );
   };
 
@@ -134,8 +130,10 @@ const SettingsScreen = ({ navigation, user }) => {
       <View style={styles.bgCircle1} />
       <View style={styles.bgCircle2} />
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
-
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scroll}
+      >
         {/* Header */}
         <View style={styles.header}>
           <View>
@@ -151,20 +149,20 @@ const SettingsScreen = ({ navigation, user }) => {
         <View style={styles.profileBanner}>
           <View style={styles.bannerAvatar}>
             <Text style={styles.bannerAvatarText}>
-              {(user?.firstName?.[0] ?? 'J') + (user?.lastName?.[0] ?? 'D')}
+              {(user?.firstName?.[0] ?? "P") + (user?.lastName?.[0] ?? "K")}
             </Text>
           </View>
           <View style={styles.bannerInfo}>
             <Text style={styles.bannerName}>
-              {user ? `${user.firstName} ${user.lastName}` : 'John Doe'}
+              {user ? `${user.firstName} ${user.lastName}` : "Prathamesh Kadam"}
             </Text>
             <Text style={styles.bannerEmail}>
-              {user?.email ?? 'john.doe@ayurveda.com'}
+              {user?.email ?? "prathamesh@ayurveda.com"}
             </Text>
           </View>
           <TouchableOpacity
             style={styles.bannerEditBtn}
-            onPress={() => navigation?.navigate('EditProfile')}
+            onPress={() => navigation?.navigate("EditProfile")}
           >
             <Text style={styles.bannerEditText}>Edit Profile</Text>
           </TouchableOpacity>
@@ -180,10 +178,10 @@ const SettingsScreen = ({ navigation, user }) => {
               iconColor="#7C3AED"
               title="Prakriti Type"
               subtitle="Your body constitution"
-              onPress={() => navigation?.navigate('PrakritiDetail')}
+              onPress={() => navigation?.navigate("PrakritiDetail")}
               rightElement={
                 <>
-                  <BadgeValue label={user?.dosha ?? 'Vata-Pitta'} />
+                  <BadgeValue label={user?.dosha ?? "Vata-Pitta"} />
                   <Ionicons name="chevron-forward" size={16} color="#CBD5E0" />
                 </>
               }
@@ -194,17 +192,24 @@ const SettingsScreen = ({ navigation, user }) => {
               iconColor="#059669"
               title="Health Goals"
               subtitle={`${user?.wellnessGoals?.length ?? 4} active goals`}
-              onPress={() => navigation?.navigate('HealthGoals')}
-              rightElement={<Ionicons name="chevron-forward" size={16} color="#CBD5E0" />}
+              onPress={() => navigation?.navigate("HealthGoals")}
+              rightElement={
+                <Ionicons name="chevron-forward" size={16} color="#CBD5E0" />
+              }
             />
             <SettingRow
               icon="leaf-outline"
               iconBg="#FEF3C7"
               iconColor="#D97706"
               title="Current Medications"
-              subtitle={user?.medications?.join(', ') ?? 'Ashwagandha, Turmeric, Triphala'}
-              onPress={() => navigation?.navigate('Medications')}
-              rightElement={<Ionicons name="chevron-forward" size={16} color="#CBD5E0" />}
+              subtitle={
+                user?.medications?.join(", ") ??
+                "Ashwagandha, Turmeric, Triphala"
+              }
+              onPress={() => navigation?.navigate("Medications")}
+              rightElement={
+                <Ionicons name="chevron-forward" size={16} color="#CBD5E0" />
+              }
             />
             <SettingRow
               icon="pulse-outline"
@@ -212,7 +217,7 @@ const SettingsScreen = ({ navigation, user }) => {
               iconColor="#1D4ED8"
               title="Health Score"
               subtitle="Last updated today"
-              onPress={() => navigation?.navigate('HealthScore')}
+              onPress={() => navigation?.navigate("HealthScore")}
               rightElement={
                 <>
                   <BadgeValue label={`${user?.healthScore ?? 85}%`} green />
@@ -276,7 +281,7 @@ const SettingsScreen = ({ navigation, user }) => {
               iconColor="#7C3AED"
               title="Theme"
               subtitle="System default"
-              onPress={() => navigation?.navigate('ThemeSettings')}
+              onPress={() => navigation?.navigate("ThemeSettings")}
               rightElement={
                 <>
                   <BadgeValue label="Auto" />
@@ -290,7 +295,7 @@ const SettingsScreen = ({ navigation, user }) => {
               iconColor="#059669"
               title="Language"
               subtitle="App display language"
-              onPress={() => navigation?.navigate('LanguageSettings')}
+              onPress={() => navigation?.navigate("LanguageSettings")}
               rightElement={
                 <>
                   <BadgeValue label="English" />
@@ -304,7 +309,7 @@ const SettingsScreen = ({ navigation, user }) => {
               iconColor="#D97706"
               title="Units"
               subtitle="Height, weight & temperature"
-              onPress={() => navigation?.navigate('UnitsSettings')}
+              onPress={() => navigation?.navigate("UnitsSettings")}
               rightElement={
                 <>
                   <BadgeValue label="Metric" />
@@ -325,8 +330,10 @@ const SettingsScreen = ({ navigation, user }) => {
               iconColor="#7C3AED"
               title="Change Password"
               subtitle="Last changed 3 months ago"
-              onPress={() => navigation?.navigate('ChangePassword')}
-              rightElement={<Ionicons name="chevron-forward" size={16} color="#CBD5E0" />}
+              onPress={() => navigation?.navigate("ChangePassword")}
+              rightElement={
+                <Ionicons name="chevron-forward" size={16} color="#CBD5E0" />
+              }
             />
             <SettingToggle
               icon="shield-checkmark-outline"
@@ -352,8 +359,10 @@ const SettingsScreen = ({ navigation, user }) => {
               iconColor="#1D4ED8"
               title="Privacy Policy"
               subtitle="How we use your data"
-              onPress={() => navigation?.navigate('PrivacyPolicy')}
-              rightElement={<Ionicons name="chevron-forward" size={16} color="#CBD5E0" />}
+              onPress={() => navigation?.navigate("PrivacyPolicy")}
+              rightElement={
+                <Ionicons name="chevron-forward" size={16} color="#CBD5E0" />
+              }
             />
           </View>
         </View>
@@ -368,8 +377,10 @@ const SettingsScreen = ({ navigation, user }) => {
               iconColor="#059669"
               title="Help & FAQ"
               subtitle="Common questions answered"
-              onPress={() => navigation?.navigate('Help')}
-              rightElement={<Ionicons name="chevron-forward" size={16} color="#CBD5E0" />}
+              onPress={() => navigation?.navigate("Help")}
+              rightElement={
+                <Ionicons name="chevron-forward" size={16} color="#CBD5E0" />
+              }
             />
             <SettingRow
               icon="chatbubble-outline"
@@ -377,8 +388,10 @@ const SettingsScreen = ({ navigation, user }) => {
               iconColor="#7C3AED"
               title="Contact Support"
               subtitle="Mon–Fri, 9am–6pm IST"
-              onPress={() => navigation?.navigate('Support')}
-              rightElement={<Ionicons name="chevron-forward" size={16} color="#CBD5E0" />}
+              onPress={() => navigation?.navigate("Support")}
+              rightElement={
+                <Ionicons name="chevron-forward" size={16} color="#CBD5E0" />
+              }
             />
             <SettingRow
               icon="star-outline"
@@ -387,7 +400,9 @@ const SettingsScreen = ({ navigation, user }) => {
               title="Rate the App"
               subtitle="Share your experience"
               onPress={() => {}}
-              rightElement={<Ionicons name="chevron-forward" size={16} color="#CBD5E0" />}
+              rightElement={
+                <Ionicons name="chevron-forward" size={16} color="#CBD5E0" />
+              }
             />
           </View>
         </View>
@@ -404,7 +419,9 @@ const SettingsScreen = ({ navigation, user }) => {
               subtitle="You'll need to log in again"
               onPress={handleSignOut}
               danger
-              rightElement={<Ionicons name="chevron-forward" size={16} color="#FCA5A5" />}
+              rightElement={
+                <Ionicons name="chevron-forward" size={16} color="#FCA5A5" />
+              }
             />
             <SettingRow
               icon="trash-outline"
@@ -414,7 +431,9 @@ const SettingsScreen = ({ navigation, user }) => {
               subtitle="Permanent — cannot be undone"
               onPress={handleDeleteAccount}
               danger
-              rightElement={<Ionicons name="chevron-forward" size={16} color="#FCA5A5" />}
+              rightElement={
+                <Ionicons name="chevron-forward" size={16} color="#FCA5A5" />
+              }
             />
           </View>
         </View>
@@ -446,27 +465,27 @@ const SettingsScreen = ({ navigation, user }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: "#F8FAFC",
   },
   bgCircle1: {
-    position: 'absolute',
+    position: "absolute",
     top: -80,
     right: -40,
     width: 200,
     height: 200,
     borderRadius: 100,
-    backgroundColor: 'rgba(124, 58, 237, 0.05)',
-    pointerEvents: 'none',
+    backgroundColor: "rgba(124, 58, 237, 0.05)",
+    pointerEvents: "none",
   },
   bgCircle2: {
-    position: 'absolute',
+    position: "absolute",
     top: 260,
     left: -100,
     width: 280,
     height: 280,
     borderRadius: 140,
-    backgroundColor: 'rgba(16, 185, 129, 0.03)',
-    pointerEvents: 'none',
+    backgroundColor: "rgba(16, 185, 129, 0.03)",
+    pointerEvents: "none",
   },
   scroll: {
     paddingBottom: 20,
@@ -474,89 +493,89 @@ const styles = StyleSheet.create({
 
   // Header
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingHorizontal: 20,
     paddingTop: 16,
     paddingBottom: 16,
   },
   headerTitle: {
     fontSize: 28,
-    fontWeight: '800',
-    color: '#1E293B',
+    fontWeight: "800",
+    color: "#1E293B",
   },
   headerSub: {
     fontSize: 13,
-    color: '#94A3B8',
-    fontWeight: '500',
+    color: "#94A3B8",
+    fontWeight: "500",
     marginTop: 2,
   },
   saveBtn: {
-    backgroundColor: '#7C3AED',
+    backgroundColor: "#7C3AED",
     borderRadius: 20,
     paddingHorizontal: 18,
     paddingVertical: 9,
   },
   saveBtnText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 13,
-    fontWeight: '700',
+    fontWeight: "700",
   },
 
   // Profile Banner
   profileBanner: {
     marginHorizontal: 20,
     marginBottom: 20,
-    backgroundColor: '#7C3AED',
+    backgroundColor: "#7C3AED",
     borderRadius: 20,
     padding: 18,
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 14,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   bannerAvatar: {
     width: 52,
     height: 52,
     borderRadius: 26,
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: "rgba(255,255,255,0.2)",
     borderWidth: 2,
-    borderColor: 'rgba(255,255,255,0.4)',
-    alignItems: 'center',
-    justifyContent: 'center',
+    borderColor: "rgba(255,255,255,0.4)",
+    alignItems: "center",
+    justifyContent: "center",
     flexShrink: 0,
   },
   bannerAvatarText: {
     fontSize: 18,
-    fontWeight: '800',
-    color: '#fff',
+    fontWeight: "800",
+    color: "#fff",
   },
   bannerInfo: {
     flex: 1,
   },
   bannerName: {
     fontSize: 16,
-    fontWeight: '800',
-    color: '#fff',
+    fontWeight: "800",
+    color: "#fff",
     marginBottom: 3,
   },
   bannerEmail: {
     fontSize: 12,
-    color: 'rgba(255,255,255,0.7)',
+    color: "rgba(255,255,255,0.7)",
   },
   bannerEditBtn: {
-    backgroundColor: 'rgba(255,255,255,0.18)',
+    backgroundColor: "rgba(255,255,255,0.18)",
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.3)',
+    borderColor: "rgba(255,255,255,0.3)",
     borderRadius: 14,
     paddingHorizontal: 14,
     paddingVertical: 7,
   },
   bannerEditText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 12,
-    fontWeight: '700',
+    fontWeight: "700",
   },
 
   // Section
@@ -565,38 +584,38 @@ const styles = StyleSheet.create({
   },
   sectionLabel: {
     fontSize: 11,
-    fontWeight: '700',
-    color: '#94A3B8',
-    textTransform: 'uppercase',
+    fontWeight: "700",
+    color: "#94A3B8",
+    textTransform: "uppercase",
     letterSpacing: 1,
     marginBottom: 10,
     paddingHorizontal: 24,
   },
   card: {
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     marginHorizontal: 20,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: '#F1F5F9',
-    overflow: 'hidden',
+    borderColor: "#F1F5F9",
+    overflow: "hidden",
   },
 
   // Row
   row: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 14,
     paddingHorizontal: 16,
     paddingVertical: 13,
     borderBottomWidth: 1,
-    borderBottomColor: '#F8FAFC',
+    borderBottomColor: "#F8FAFC",
   },
   rowIcon: {
     width: 36,
     height: 36,
     borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     flexShrink: 0,
   },
   rowBody: {
@@ -604,77 +623,77 @@ const styles = StyleSheet.create({
   },
   rowTitle: {
     fontSize: 15,
-    fontWeight: '700',
-    color: '#1E293B',
+    fontWeight: "700",
+    color: "#1E293B",
   },
   rowSub: {
     fontSize: 12,
-    color: '#94A3B8',
+    color: "#94A3B8",
     marginTop: 2,
   },
   rowRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 8,
   },
   dangerText: {
-    color: '#DC2626',
+    color: "#DC2626",
   },
 
   // Badge
   badge: {
-    backgroundColor: '#EDE9FE',
+    backgroundColor: "#EDE9FE",
     borderRadius: 10,
     paddingHorizontal: 10,
     paddingVertical: 3,
   },
   badgeText: {
     fontSize: 12,
-    fontWeight: '700',
-    color: '#7C3AED',
+    fontWeight: "700",
+    color: "#7C3AED",
   },
   badgeGreen: {
-    backgroundColor: '#D1FAE5',
+    backgroundColor: "#D1FAE5",
   },
   badgeGreenText: {
-    color: '#059669',
+    color: "#059669",
   },
 
   // Version card
   versionCard: {
-    alignItems: 'center',
+    alignItems: "center",
     paddingVertical: 22,
   },
   versionDot: {
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: '#EDE9FE',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: "#EDE9FE",
+    alignItems: "center",
+    justifyContent: "center",
     marginBottom: 8,
   },
   versionAppName: {
     fontSize: 16,
-    fontWeight: '800',
-    color: '#1E293B',
+    fontWeight: "800",
+    color: "#1E293B",
     marginBottom: 4,
   },
   versionNum: {
     fontSize: 12,
-    color: '#94A3B8',
+    color: "#94A3B8",
     marginBottom: 8,
   },
   versionBadge: {
-    backgroundColor: '#D1FAE5',
+    backgroundColor: "#D1FAE5",
     borderRadius: 10,
     paddingHorizontal: 12,
     paddingVertical: 4,
   },
   versionBadgeText: {
     fontSize: 12,
-    fontWeight: '700',
-    color: '#065F46',
+    fontWeight: "700",
+    color: "#065F46",
   },
 });
 
