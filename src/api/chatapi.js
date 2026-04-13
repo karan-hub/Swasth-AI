@@ -1,10 +1,10 @@
 // const BASE_URL = "http://10.121.49.25:3000";
-const BASE_URL = "http://10.92.53.25:3000";
+const BASE_URL = "http://10.88.149.25:8080";
 
 export const sendMessageToChat = async (message, userId, sessionId) => {
   try {
-    const res = await fetch(`${BASE_URL}/chat`, {
-      method: "POST",
+    const res = await fetch(`${BASE_URL}/api/remedies/ask?symptoms=${message}`, {
+      method: "GET",
       headers: {
         "Content-Type": "application/json",
       },
