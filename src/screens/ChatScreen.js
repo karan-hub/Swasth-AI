@@ -14,80 +14,100 @@ import {
   StatusBar,
   Animated,
   ScrollView,
+  Dimensions,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { sendMessageToChat } from "../api/chatapi";
 
-// ============================================
-// QUICK SUGGESTION CHIPS
-// ============================================
+const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 
+// ─── Brand tokens ─────────────────────────────────────────────────────────────
+const BRAND       = "#0D9268";
+const BRAND_DARK  = "#0a7a57";
+const BRAND_MID   = "#1db880";
+const BRAND_LIGHT = "#E1F5EE";
+const BRAND_PALE  = "#f0faf6";
+const USER_BUBBLE = "#0D9268";
+const BG          = "#F5F7F6";
+const SURFACE     = "#FFFFFF";
+const TEXT_PRIMARY   = "#0f2419";
+const TEXT_SECONDARY = "#5a7a68";
+const TEXT_MUTED     = "#a0b8ac";
+const BORDER      = "#E3EDE9";
+
+// ─── Quick chips ──────────────────────────────────────────────────────────────
 const QUICK_CHIPS = [
-  { label: "Diet tips", icon: "nutrition-outline", color: "#7C3AED", bg: "#F3E8FF", border: "#DDD6FE" },
-  { label: "Remedies", icon: "leaf-outline", color: "#059669", bg: "#D1FAE5", border: "#A7F3D0" },
-  { label: "My dosha", icon: "sunny-outline", color: "#D97706", bg: "#FEF3C7", border: "#FDE68A" },
-  { label: "Yoga poses", icon: "body-outline", color: "#7C3AED", bg: "#F3E8FF", border: "#DDD6FE" },
-  { label: "Sleep help", icon: "moon-outline", color: "#059669", bg: "#D1FAE5", border: "#A7F3D0" },
-  { label: "Herbs", icon: "flower-outline", color: "#7C3AED", bg: "#F3E8FF", border: "#DDD6FE" },
+  { label: "Diet tips",    icon: "nutrition-outline" },
+  { label: "Remedies",     icon: "leaf-outline"      },
+  { label: "My dosha",     icon: "sunny-outline"     },
+  { label: "Yoga poses",   icon: "body-outline"      },
+  { label: "Sleep help",   icon: "moon-outline"      },
+  { label: "Herbs",        icon: "flower-outline"    },
 ];
 
-// ============================================
-// TYPING INDICATOR with animation
-// ============================================
-
+// ─── Typing indicator ─────────────────────────────────────────────────────────
 const TypingIndicator = () => {
-  const dot1 = useRef(new Animated.Value(0)).current;
-  const dot2 = useRef(new Animated.Value(0)).current;
-  const dot3 = useRef(new Animated.Value(0)).current;
+  const dots = [useRef(new Animated.Value(0)).current,
+                useRef(new Animated.Value(0)).current,
+                useRef(new Animated.Value(0)).current];
 
   useEffect(() => {
-    const animate = (dot, delay) =>
+    dots.forEach((dot, i) =>
       Animated.loop(
         Animated.sequence([
-          Animated.delay(delay),
-          Animated.timing(dot, { toValue: -6, duration: 300, useNativeDriver: true }),
-          Animated.timing(dot, { toValue: 0, duration: 300, useNativeDriver: true }),
-          Animated.delay(600),
+          Animated.delay(i * 160),
+          Animated.timing(dot, { toValue: -5, duration: 280, useNativeDriver: true }),
+          Animated.timing(dot, { toValue: 0,  duration: 280, useNativeDriver: true }),
+          Animated.delay(560),
         ])
-      ).start();
-
-    animate(dot1, 0);
-    animate(dot2, 150);
-    animate(dot3, 300);
+      ).start()
+    );
   }, []);
 
   return (
-    <View style={styles.typingRow}>
+    <View style={styles.msgRow}>
       <View style={styles.aiAvatar}>
-        <Text style={styles.aiAvatarText}>🌿</Text>
+        <LeafIcon size={16} color="#fff" />
       </View>
       <View style={styles.typingBubble}>
-        {[dot1, dot2, dot3].map((dot, i) => (
-          <Animated.View
-            key={i}
-            style={[styles.typingDot, { transform: [{ translateY: dot }] }]}
-          />
+        {dots.map((dot, i) => (
+          <Animated.View key={i} style={[styles.typingDot, { transform: [{ translateY: dot }] }]} />
         ))}
       </View>
     </View>
   );
 };
 
-// ============================================
-// MESSAGE BUBBLE
-// ============================================
+// ─── Leaf SVG icon (no emoji dependency) ─────────────────────────────────────
+const LeafIcon = ({ size = 20, color = BRAND }) => (
+  <View style={{ width: size, height: size, alignItems: "center", justifyContent: "center" }}>
+    <View style={{
+      width: size * 0.65, height: size * 0.85,
+      borderRadius: size * 0.65,
+      backgroundColor: color,
+      transform: [{ rotate: "-15deg" }],
+    }} />
+    <View style={{
+      position: "absolute",
+      width: 1.5, height: size * 0.75,
+      backgroundColor: color === "#fff" ? "rgba(255,255,255,0.5)" : BRAND_PALE,
+      bottom: 1,
+      transform: [{ rotate: "0deg" }],
+    }} />
+  </View>
+);
 
+// ─── Formatted time ───────────────────────────────────────────────────────────
+const formatTime = (ts) => {
+  const d = new Date(ts);
+  const h = d.getHours(), m = d.getMinutes();
+  return `${h % 12 || 12}:${m < 10 ? "0" + m : m} ${h >= 12 ? "PM" : "AM"}`;
+};
+
+// ─── Message bubble ───────────────────────────────────────────────────────────
 const MessageBubble = ({ item, showTime, onSuggestionPress }) => {
   const isUser = item.sender === "user";
-
-  const formatTime = (timestamp) => {
-    const date = new Date(timestamp);
-    const h = date.getHours();
-    const m = date.getMinutes();
-    const ampm = h >= 12 ? "PM" : "AM";
-    return `${h % 12 || 12}:${m < 10 ? "0" + m : m} ${ampm}`;
-  };
 
   return (
     <View style={styles.messageWrapper}>
@@ -102,7 +122,7 @@ const MessageBubble = ({ item, showTime, onSuggestionPress }) => {
       <View style={[styles.msgRow, isUser && styles.msgRowUser]}>
         {!isUser && (
           <View style={styles.aiAvatar}>
-            <Text style={styles.aiAvatarText}>🌿</Text>
+            <LeafIcon size={16} color="#fff" />
           </View>
         )}
 
@@ -112,19 +132,18 @@ const MessageBubble = ({ item, showTime, onSuggestionPress }) => {
               {item.message}
             </Text>
             <Text style={[styles.bubbleTime, isUser ? styles.userTime : styles.aiTime]}>
-              {formatTime(item.timestamp)}
-              {isUser && "  ✓✓"}
+              {formatTime(item.timestamp)}{isUser && "  ✓✓"}
             </Text>
           </View>
 
-          {/* AI suggestion chips */}
-          {!isUser && item.suggestions && item.suggestions.length > 0 && (
+          {!isUser && item.suggestions?.length > 0 && (
             <View style={styles.suggestionRow}>
               {item.suggestions.map((s, i) => (
                 <TouchableOpacity
                   key={i}
                   style={styles.suggestionChip}
                   onPress={() => onSuggestionPress?.(s)}
+                  activeOpacity={0.75}
                 >
                   <Text style={styles.suggestionText}>{s}</Text>
                 </TouchableOpacity>
@@ -132,34 +151,30 @@ const MessageBubble = ({ item, showTime, onSuggestionPress }) => {
             </View>
           )}
         </View>
+
+        {isUser && <View style={styles.userSpacer} />}
       </View>
     </View>
   );
 };
 
-// ============================================
-// CHAT SCREEN
-// ============================================
-
+// ─── Main chat screen ─────────────────────────────────────────────────────────
 export default function ChatScreen() {
-  const [text, setText] = useState("");
+  const [text, setText]         = useState("");
   const [messages, setMessages] = useState([]);
   const [isTyping, setIsTyping] = useState(false);
   const flatListRef = useRef(null);
-  const inputRef = useRef(null);
+  const inputRef    = useRef(null);
+
+  useEffect(() => { loadMessages(); }, []);
 
   useEffect(() => {
-    loadMessages();
-  }, []);
-
-  useEffect(() => {
-    if (messages.length > 0) {
-      setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
+    if (messages.length > 0 || isTyping) {
+      setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 80);
     }
   }, [messages, isTyping]);
 
-  // ── Persistence ──────────────────────────
-
+  // ── Persistence ──────────────────────────────────────────────────────────────
   const loadMessages = async () => {
     try {
       const data = await AsyncStorage.getItem("CHAT_V2");
@@ -172,51 +187,42 @@ export default function ChatScreen() {
           ["What can you help with?", "My Vata imbalance", "Morning routine"]
         );
         setMessages([welcome]);
-        save([welcome]);
+        persist([welcome]);
       }
-    } catch (e) {
-      console.error(e);
-    }
+    } catch (e) { console.error("loadMessages:", e); }
   };
 
-  const save = async (msgs) => {
-    try {
-      await AsyncStorage.setItem("CHAT_V2", JSON.stringify(msgs));
-    } catch (e) {
-      console.error(e);
-    }
+  const persist = async (msgs) => {
+    try { await AsyncStorage.setItem("CHAT_V2", JSON.stringify(msgs)); }
+    catch (e) { console.error("persist:", e); }
   };
 
-  // ── Message factory ───────────────────────
-
+  // ── Message factory ───────────────────────────────────────────────────────────
   const makeMessage = (msg, sender, suggestions = []) => ({
-    id: Date.now().toString() + Math.random(),
+    id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
     message: msg,
     sender,
     timestamp: new Date().toISOString(),
     suggestions,
   });
 
-  // ── Send ──────────────────────────────────
-
+  // ── Send ───────────────────────────────────────────────────────────────────────
   const handleSend = async (overrideText) => {
     const content = (overrideText ?? text).trim();
     if (!content) return;
 
     const userMsg = makeMessage(content, "user");
     const updated = [...messages, userMsg];
-
     setMessages(updated);
-    save(updated);
+    persist(updated);
     setText("");
     setIsTyping(true);
     Keyboard.dismiss();
 
     try {
-      const userId = await AsyncStorage.getItem("USER_ID") ?? "user1";
+      const userId    = (await AsyncStorage.getItem("USER_ID")) ?? "user1";
       const sessionId = "session1";
-
-      const response = await sendMessageToChat(content, userId, sessionId);
+      const response  = await sendMessageToChat(content, userId, sessionId);
 
       const aiText =
         response?.understanding?.message ||
@@ -226,25 +232,17 @@ export default function ChatScreen() {
       const aiMsg = makeMessage(aiText, "ai");
       const final = [...updated, aiMsg];
       setMessages(final);
-      save(final);
+      persist(final);
     } catch (err) {
-      console.error(err);
+      console.error("sendMessage:", err);
       const errMsg = makeMessage(
         "Something went wrong connecting to the server. Please check your connection and try again.",
         "ai"
       );
       setMessages([...updated, errMsg]);
+    } finally {
+      setIsTyping(false);
     }
-
-    setIsTyping(false);
-  };
-
-  const handleChipPress = (label) => {
-    handleSend(label);
-  };
-
-  const handleSuggestionPress = (suggestion) => {
-    handleSend(suggestion);
   };
 
   const clearChat = async () => {
@@ -255,86 +253,94 @@ export default function ChatScreen() {
       ["What can you help with?", "My dosha", "Today's routine"]
     );
     setMessages([welcome]);
-    save([welcome]);
+    persist([welcome]);
   };
 
-  // ── Render ────────────────────────────────
-
+  // ── Render item ────────────────────────────────────────────────────────────────
   const renderItem = ({ item, index }) => {
     const showTime =
       index === 0 ||
       new Date(item.timestamp) - new Date(messages[index - 1]?.timestamp) > 60000;
-
     return (
       <MessageBubble
         item={item}
         showTime={showTime}
-        onSuggestionPress={handleSuggestionPress}
+        onSuggestionPress={(s) => handleSend(s)}
       />
     );
   };
 
+  // ── UI ─────────────────────────────────────────────────────────────────────────
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#fff" />
+    <SafeAreaView style={styles.safe}>
+      <StatusBar barStyle="dark-content" backgroundColor={SURFACE} />
 
-      {/* Background decorations */}
-      <View style={styles.bgCircle1} />
-      <View style={styles.bgCircle2} />
-
-      {/* ── Header ── */}
+      {/* ── Header — always locked at top, never moves ── */}
       <View style={styles.header}>
         <View style={styles.headerLeft}>
           <View style={styles.headerAvatar}>
-            <Text style={styles.headerAvatarText}>🌿</Text>
+            <LeafIcon size={20} color="#fff" />
             <View style={styles.onlineDot} />
           </View>
           <View>
             <Text style={styles.headerTitle}>Ayurvedic Assistant</Text>
-            <Text style={styles.headerOnline}>● Online now</Text>
+            <View style={styles.onlineRow}>
+              <View style={styles.onlinePulse} />
+              <Text style={styles.headerOnline}>Online now</Text>
+            </View>
           </View>
         </View>
         <View style={styles.headerActions}>
-          <TouchableOpacity style={styles.headerIconBtn}>
-            <Ionicons name="search-outline" size={18} color="#64748B" />
+          <TouchableOpacity style={styles.iconBtn} activeOpacity={0.7}>
+            <Ionicons name="search-outline" size={18} color={TEXT_SECONDARY} />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.headerIconBtn}>
-            <Ionicons name="ellipsis-vertical" size={18} color="#64748B" />
+          <TouchableOpacity style={styles.iconBtn} activeOpacity={0.7}>
+            <Ionicons name="ellipsis-vertical" size={18} color={TEXT_SECONDARY} />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.clearBtn} onPress={clearChat}>
+          <TouchableOpacity style={styles.clearBtn} onPress={clearChat} activeOpacity={0.8}>
             <Text style={styles.clearBtnText}>Clear</Text>
           </TouchableOpacity>
         </View>
       </View>
 
-      {/* ── Quick chips ── */}
-      <View style={styles.chipsOuter}>
+      {/* ── Quick chips — locked below header, never moves ── */}
+      <View style={styles.chipsBar}>
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.chipsScroll}
+          keyboardShouldPersistTaps="handled"
         >
           {QUICK_CHIPS.map((chip, i) => (
             <TouchableOpacity
               key={i}
-              style={[styles.chip, { backgroundColor: chip.bg, borderColor: chip.border }]}
-              onPress={() => handleChipPress(chip.label)}
+              style={styles.chip}
+              onPress={() => handleSend(chip.label)}
+              activeOpacity={0.75}
             >
-              <Ionicons name={chip.icon} size={13} color={chip.color} />
-              <Text style={[styles.chipText, { color: chip.color }]}>{chip.label}</Text>
+              <Ionicons name={chip.icon} size={13} color={BRAND} />
+              <Text style={styles.chipText}>{chip.label}</Text>
             </TouchableOpacity>
           ))}
         </ScrollView>
       </View>
 
-      {/* ── Messages ── */}
+      {/*
+        ── KeyboardAvoidingView wraps ONLY messages + input ──
+        On Android: behavior="padding" + keyboardVerticalOffset=0 is the
+        most stable combo. "height" causes the entire view to resize and
+        jump, which is what caused the chips bar to vibrate.
+        On iOS:     behavior="padding" with offset=0 works because
+        SafeAreaView already handles the insets.
+      */}
       <KeyboardAvoidingView
         style={styles.flex}
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
+        behavior="padding"
+        keyboardVerticalOffset={0}
       >
-        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
           <View style={styles.flex}>
+
             <FlatList
               ref={flatListRef}
               data={messages}
@@ -342,14 +348,19 @@ export default function ChatScreen() {
               renderItem={renderItem}
               contentContainerStyle={styles.messagesList}
               showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+              keyboardDismissMode="interactive"
+              onContentSizeChange={() =>
+                flatListRef.current?.scrollToEnd({ animated: true })
+              }
               ListFooterComponent={isTyping ? <TypingIndicator /> : null}
             />
 
-            {/* ── Input ── */}
+            {/* ── Input area ── */}
             <View style={styles.inputArea}>
-              <View style={styles.inputWrap}>
-                <TouchableOpacity style={styles.attachBtn}>
-                  <Ionicons name="attach-outline" size={20} color="#7C3AED" />
+              <View style={styles.inputRow}>
+                <TouchableOpacity style={styles.attachBtn} activeOpacity={0.7}>
+                  <Ionicons name="add" size={20} color={BRAND} />
                 </TouchableOpacity>
 
                 <TextInput
@@ -357,33 +368,30 @@ export default function ChatScreen() {
                   style={styles.input}
                   value={text}
                   onChangeText={setText}
-                  placeholder="Ask about diet, remedies, lifestyle..."
-                  placeholderTextColor="#94A3B8"
+                  placeholder="Ask about diet, remedies, lifestyle…"
+                  placeholderTextColor={TEXT_MUTED}
                   multiline
                   maxLength={500}
-                  onSubmitEditing={() => handleSend()}
                   returnKeyType="send"
-                  blurOnSubmit
+                  blurOnSubmit={false}
+                  onSubmitEditing={() => handleSend()}
                 />
 
                 <TouchableOpacity
-                  style={[styles.sendBtn, !text.trim() && styles.sendBtnDisabled]}
+                  style={[styles.sendBtn, !text.trim() && styles.sendBtnOff]}
                   onPress={() => handleSend()}
                   disabled={!text.trim()}
+                  activeOpacity={0.85}
                 >
                   <Ionicons
                     name="arrow-up"
                     size={18}
-                    color={text.trim() ? "#fff" : "#94A3B8"}
+                    color={text.trim() ? "#fff" : TEXT_MUTED}
                   />
                 </TouchableOpacity>
               </View>
-
-              <View style={styles.inputFooter}>
-                <Text style={styles.charCount}>{text.length} / 500</Text>
-                <Text style={styles.poweredBy}>Powered by AyurWell AI</Text>
-              </View>
             </View>
+
           </View>
         </TouchableWithoutFeedback>
       </KeyboardAvoidingView>
@@ -391,201 +399,183 @@ export default function ChatScreen() {
   );
 }
 
-// ============================================
-// STYLES
-// ============================================
-
+// ─── Styles ────────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#F8FAFC" },
+  safe: { flex: 1, backgroundColor: SURFACE },
   flex: { flex: 1 },
 
-  // Background
-  bgCircle1: {
-    position: "absolute", top: -60, right: -40,
-    width: 160, height: 160, borderRadius: 80,
-    backgroundColor: "rgba(124,58,237,0.05)",
-  },
-  bgCircle2: {
-    position: "absolute", top: 300, left: -80,
-    width: 220, height: 220, borderRadius: 110,
-    backgroundColor: "rgba(16,185,129,0.04)",
-  },
-
-  // Header
+  // ── Header ──
   header: {
-    backgroundColor: "#fff",
+    backgroundColor: SURFACE,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: "#F1F5F9",
-    elevation: 2,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 4,
-    zIndex: 10,
+    paddingVertical: 10,
+    borderBottomWidth: 0.5,
+    borderBottomColor: BORDER,
+     paddingTop: 40,
   },
-  headerLeft: { flexDirection: "row", alignItems: "center", gap: 12 },
+  headerLeft:   { flexDirection: "row", alignItems: "center", gap: 10 },
   headerAvatar: {
-    width: 44, height: 44, borderRadius: 22,
-    backgroundColor: "#7C3AED",
+    width: 42, height: 42, borderRadius: 21,
+    backgroundColor: BRAND,
     alignItems: "center", justifyContent: "center",
     position: "relative",
   },
-  headerAvatarText: { fontSize: 20 },
   onlineDot: {
     position: "absolute", bottom: 1, right: 1,
-    width: 12, height: 12, borderRadius: 6,
-    backgroundColor: "#10B981",
-    borderWidth: 2, borderColor: "#fff",
+    width: 11, height: 11, borderRadius: 6,
+    backgroundColor: "#34d399",
+    borderWidth: 2, borderColor: SURFACE,
   },
-  headerTitle: { fontSize: 16, fontWeight: "800", color: "#1E293B" },
-  headerOnline: { fontSize: 12, color: "#10B981", fontWeight: "600", marginTop: 1 },
-  headerActions: { flexDirection: "row", alignItems: "center", gap: 8 },
-  headerIconBtn: {
-    width: 36, height: 36, borderRadius: 18,
-    backgroundColor: "#F8FAFC", borderWidth: 1, borderColor: "#E2E8F0",
+  headerTitle: { fontSize: 15, fontWeight: "700", color: TEXT_PRIMARY, letterSpacing: -0.2 },
+  onlineRow:   { flexDirection: "row", alignItems: "center", gap: 5, marginTop: 2},
+  onlinePulse: { width: 6, height: 6, borderRadius: 3, backgroundColor: "#34d399" },
+  headerOnline: { fontSize: 11, color: BRAND, fontWeight: "600" },
+  headerActions: { flexDirection: "row", alignItems: "center", gap: 6 },
+  iconBtn: {
+    width: 34, height: 34, borderRadius: 17,
+    backgroundColor: BG, borderWidth: 0.5, borderColor: BORDER,
     alignItems: "center", justifyContent: "center",
   },
   clearBtn: {
-    backgroundColor: "#FEF2F2", borderWidth: 1, borderColor: "#FECACA",
-    borderRadius: 18, paddingHorizontal: 14, paddingVertical: 7,
+    backgroundColor: "#fff5f5",
+    borderWidth: 0.5, borderColor: "#fca5a5",
+    borderRadius: 16, paddingHorizontal: 12, paddingVertical: 6,
   },
-  clearBtnText: { fontSize: 12, fontWeight: "700", color: "#DC2626" },
+  clearBtnText: { fontSize: 12, fontWeight: "700", color: "#dc2626" },
 
-  // Quick chips
-  chipsOuter: {
-    backgroundColor: "#fff",
-    borderBottomWidth: 1,
-    borderBottomColor: "#F1F5F9",
+  // ── Chips ──
+  chipsBar: {
+    backgroundColor: SURFACE,
+    borderBottomWidth: 0.5,
+    borderBottomColor: BORDER,
   },
-  chipsScroll: { paddingHorizontal: 16, paddingVertical: 10, gap: 8 },
+  chipsScroll: { paddingHorizontal: 14, paddingVertical: 9, gap: 8 },
   chip: {
     flexDirection: "row", alignItems: "center", gap: 5,
-    borderRadius: 20, borderWidth: 1,
+    backgroundColor: BRAND_LIGHT,
+    borderWidth: 0.5, borderColor: "#9FE1CB",
+    borderRadius: 20,
     paddingHorizontal: 12, paddingVertical: 6,
   },
-  chipText: { fontSize: 12, fontWeight: "700" },
+  chipText: { fontSize: 12, fontWeight: "600", color: BRAND_DARK },
 
-  // Messages
-  messagesList: { padding: 16, paddingBottom: 8 },
-  messageWrapper: { marginBottom: 4 },
+  // ── Messages ──
+  messagesList: {
+    paddingHorizontal: 14,
+    paddingTop: 6,
+    paddingBottom: 8,
+    flexGrow: 1,
+    backgroundColor: BG,
+  },
+  messageWrapper: { marginBottom: 2 },
 
-  // Time divider
   timeDivider: {
     flexDirection: "row", alignItems: "center",
-    gap: 10, marginVertical: 14,
+    gap: 10, marginVertical: 16,
   },
-  timeLine: { flex: 1, height: 1, backgroundColor: "#F1F5F9" },
-  timeStamp: { fontSize: 11, color: "#94A3B8", fontWeight: "600" },
+  timeLine: { flex: 1, height: 0.5, backgroundColor: BORDER },
+  timeStamp: { fontSize: 11, color: TEXT_MUTED, fontWeight: "600" },
 
-  // Msg row
-  msgRow: {
-    flexDirection: "row", alignItems: "flex-end",
-    gap: 8, marginBottom: 12,
-  },
+  msgRow:     { flexDirection: "row", alignItems: "flex-end", gap: 8, marginBottom: 10 },
   msgRowUser: { flexDirection: "row-reverse" },
 
-  // AI avatar
   aiAvatar: {
-    width: 32, height: 32, borderRadius: 16,
-    backgroundColor: "#7C3AED",
+    width: 30, height: 30, borderRadius: 15,
+    backgroundColor: BRAND,
     alignItems: "center", justifyContent: "center",
-    flexShrink: 0,
+    flexShrink: 0, marginBottom: 2,
   },
-  aiAvatarText: { fontSize: 15 },
 
-  // Bubble wrapper
-  bubbleWrapper: { maxWidth: "74%", alignItems: "flex-start" },
+  bubbleWrapper:     { maxWidth: "74%", alignItems: "flex-start" },
   bubbleWrapperUser: { alignItems: "flex-end" },
+  userSpacer:        { width: 30 },
 
-  // Bubble
-  bubble: { borderRadius: 20, paddingVertical: 11, paddingHorizontal: 15 },
-  userBubble: {
-    backgroundColor: "#7C3AED",
-    borderBottomRightRadius: 5,
-  },
+  bubble:     { borderRadius: 18, paddingVertical: 10, paddingHorizontal: 14 },
+  userBubble: { backgroundColor: USER_BUBBLE, borderBottomRightRadius: 4 },
   aiBubble: {
-    backgroundColor: "#fff",
-    borderWidth: 1, borderColor: "#F1F5F9",
-    borderBottomLeftRadius: 5,
-    elevation: 1,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 3,
+    backgroundColor: SURFACE,
+    borderWidth: 0.5, borderColor: BORDER,
+    borderBottomLeftRadius: 4,
   },
+
   bubbleText: { fontSize: 14, lineHeight: 21 },
-  userText: { color: "#fff" },
-  aiText: { color: "#1E293B" },
-  bubbleTime: { fontSize: 11, marginTop: 5, fontWeight: "500" },
-  userTime: { color: "rgba(255,255,255,0.6)", textAlign: "right" },
-  aiTime: { color: "#94A3B8" },
+  userText:   { color: "#fff" },
+  aiText:     { color: TEXT_PRIMARY },
+  bubbleTime: { fontSize: 10, marginTop: 5 },
+  userTime:   { color: "rgba(255,255,255,0.55)", textAlign: "right" },
+  aiTime:     { color: TEXT_MUTED },
 
-  // Suggestion chips
-  suggestionRow: { flexDirection: "row", flexWrap: "wrap", gap: 6, marginTop: 8 },
+  suggestionRow: { flexDirection: "row", flexWrap: "wrap", gap: 6, marginTop: 7 },
   suggestionChip: {
-    backgroundColor: "#F3E8FF", borderWidth: 1, borderColor: "#DDD6FE",
-    borderRadius: 14, paddingHorizontal: 12, paddingVertical: 5,
+    backgroundColor: BRAND_LIGHT,
+    borderWidth: 0.5, borderColor: "#9FE1CB",
+    borderRadius: 12, paddingHorizontal: 11, paddingVertical: 5,
   },
-  suggestionText: { fontSize: 12, fontWeight: "700", color: "#6D28D9" },
+  suggestionText: { fontSize: 12, fontWeight: "600", color: BRAND_DARK },
 
-  // Typing indicator
-  typingRow: {
-    flexDirection: "row", alignItems: "flex-end",
-    gap: 8, marginBottom: 12,
-  },
+  // ── Typing ──
   typingBubble: {
-    backgroundColor: "#fff", borderWidth: 1, borderColor: "#F1F5F9",
-    borderRadius: 20, borderBottomLeftRadius: 5,
-    paddingVertical: 14, paddingHorizontal: 18,
+    backgroundColor: SURFACE,
+    borderWidth: 0.5, borderColor: BORDER,
+    borderRadius: 18, borderBottomLeftRadius: 4,
+    paddingVertical: 13, paddingHorizontal: 16,
     flexDirection: "row", gap: 5, alignItems: "center",
   },
   typingDot: {
-    width: 8, height: 8, borderRadius: 4,
-    backgroundColor: "#CBD5E0",
+    width: 7, height: 7, borderRadius: 3.5,
+    backgroundColor: BORDER,
   },
 
-  // Input area
+  // ── Input ──
   inputArea: {
-    backgroundColor: "#fff",
-    borderTopWidth: 1, borderTopColor: "#F1F5F9",
-    paddingHorizontal: 16, paddingTop: 10, paddingBottom: 12,
+    backgroundColor: SURFACE,
+    borderTopWidth: 0.5,
+    borderTopColor: BORDER,
+    paddingHorizontal: 14,
+    paddingTop: 10,
+    paddingBottom: 12,
   },
-  inputWrap: {
-    flexDirection: "row", alignItems: "flex-end", gap: 8,
-    backgroundColor: "#F8FAFC",
-    borderWidth: 1.5, borderColor: "#E2E8F0",
-    borderRadius: 24,
-    paddingLeft: 6, paddingRight: 6, paddingVertical: 6,
+  inputRow: {
+    flexDirection: "row",
+    alignItems: "flex-end",
+    gap: 8,
+    backgroundColor: BG,
+    borderWidth: 1,
+    borderColor: BORDER,
+    borderRadius: 26,
+    paddingHorizontal: 6,
+    paddingVertical: 5,
     minHeight: 48,
   },
   attachBtn: {
     width: 34, height: 34, borderRadius: 17,
-    backgroundColor: "#F3E8FF",
+    backgroundColor: BRAND_LIGHT,
     alignItems: "center", justifyContent: "center",
-    flexShrink: 0,
+    flexShrink: 0, marginBottom: 1,
   },
   input: {
     flex: 1,
-    fontSize: 14, color: "#1E293B",
-    maxHeight: 100, paddingVertical: 6,
-    paddingHorizontal: 4,
+    fontSize: 14, color: TEXT_PRIMARY,
+    paddingVertical: 6, paddingHorizontal: 2,
+    maxHeight: SCREEN_HEIGHT * 0.18,
+    lineHeight: 20,
   },
   sendBtn: {
-    width: 38, height: 38, borderRadius: 19,
-    backgroundColor: "#7C3AED",
+    width: 36, height: 36, borderRadius: 18,
+    backgroundColor: BRAND,
     alignItems: "center", justifyContent: "center",
-    flexShrink: 0,
+    flexShrink: 0, marginBottom: 1,
   },
-  sendBtnDisabled: { backgroundColor: "#E2E8F0" },
+  sendBtnOff: { backgroundColor: BG, borderWidth: 0.5, borderColor: BORDER },
+
   inputFooter: {
-    flexDirection: "row", justifyContent: "space-between",
-    marginTop: 7, paddingHorizontal: 4,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 6, paddingHorizontal: 6,
   },
-  charCount: { fontSize: 11, color: "#CBD5E0", fontWeight: "500" },
-  poweredBy: { fontSize: 11, color: "#CBD5E0", fontWeight: "500" },
+  charCount:  { fontSize: 11, color: TEXT_MUTED },
+  poweredBy:  { fontSize: 11, color: TEXT_MUTED },
 });
