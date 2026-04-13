@@ -1,25 +1,27 @@
-// const BASE_URL = "http://10.121.49.25:3000";
 const BASE_URL = "http://10.88.149.25:8080";
 
-export const sendMessageToChat = async (message, userId, sessionId) => {
-  try {
-    const res = await fetch(`${BASE_URL}/api/remedies/ask?symptoms=${message}`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        message,
-        userId,
-        sessionId,
-      }),
-    });
+export const sendMessageToChat = async (userSymptoms) => {
+    try {
+        const response = await fetch(
+            `${BASE_URL}/api/remedies/ask?symptoms=${encodeURIComponent(userSymptoms)}`,
+            {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                }
+            }
+        );
 
-    const data = await res.json();
-    return data;
+        if (!response.ok) {
+            throw new Error(`API responded with status ${response.status}`);
+        }
 
-  } catch (error) {
-    console.log("❌ API Error:", error);
-    return { message: "Server not reachable 😢" };
-  }
+        const data = await response.json();
+        console.log("Swasthya AI Response:", data);
+        return data;
+    } catch (error) {
+        console.error("There was an error fetching the remedy:", error);
+        throw error;   // propagate to the caller
+    }
 };

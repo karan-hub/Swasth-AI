@@ -22,7 +22,7 @@ import { sendMessageToChat } from "../api/chatapi";
 
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 
-// ─── Brand tokens ─────────────────────────────────────────────────────────────
+// Brand tokens (unchanged)
 const BRAND = "#0D9268";
 const BRAND_DARK = "#0a7a57";
 const BRAND_MID = "#1db880";
@@ -36,7 +36,7 @@ const TEXT_SECONDARY = "#5a7a68";
 const TEXT_MUTED = "#a0b8ac";
 const BORDER = "#E3EDE9";
 
-// ─── Quick chips ──────────────────────────────────────────────────────────────
+// Quick chips (unchanged)
 const QUICK_CHIPS = [
   { label: "Diet tips", icon: "nutrition-outline" },
   { label: "Remedies", icon: "leaf-outline" },
@@ -46,7 +46,7 @@ const QUICK_CHIPS = [
   { label: "Herbs", icon: "flower-outline" },
 ];
 
-// ─── Typing indicator ─────────────────────────────────────────────────────────
+// Typing indicator (fixed dependency)
 const TypingIndicator = () => {
   const dots = [
     useRef(new Animated.Value(0)).current,
@@ -55,7 +55,7 @@ const TypingIndicator = () => {
   ];
 
   useEffect(() => {
-    dots.forEach((dot, i) =>
+    const animations = dots.map((dot, i) =>
       Animated.loop(
         Animated.sequence([
           Animated.delay(i * 160),
@@ -70,10 +70,12 @@ const TypingIndicator = () => {
             useNativeDriver: true,
           }),
           Animated.delay(560),
-        ]),
-      ).start(),
+        ])
+      )
     );
-  }, []);
+    animations.forEach(anim => anim.start());
+    return () => animations.forEach(anim => anim.stop());
+  }, [dots]); // added dots to dependency array
 
   return (
     <View style={styles.msgRow}>
@@ -92,7 +94,7 @@ const TypingIndicator = () => {
   );
 };
 
-// ─── Leaf SVG icon (no emoji dependency) ─────────────────────────────────────
+// LeafIcon (unchanged)
 const LeafIcon = ({ size = 20, color = BRAND }) => (
   <View
     style={{
@@ -116,16 +118,14 @@ const LeafIcon = ({ size = 20, color = BRAND }) => (
         position: "absolute",
         width: 1.5,
         height: size * 0.75,
-        backgroundColor:
-          color === "#fff" ? "rgba(255,255,255,0.5)" : BRAND_PALE,
+        backgroundColor: color === "#fff" ? "rgba(255,255,255,0.5)" : BRAND_PALE,
         bottom: 1,
-        transform: [{ rotate: "0deg" }],
       }}
     />
   </View>
 );
 
-// ─── Formatted time ───────────────────────────────────────────────────────────
+// Format time (unchanged)
 const formatTime = (ts) => {
   const d = new Date(ts);
   const h = d.getHours(),
@@ -133,7 +133,7 @@ const formatTime = (ts) => {
   return `${h % 12 || 12}:${m < 10 ? "0" + m : m} ${h >= 12 ? "PM" : "AM"}`;
 };
 
-// ─── Message bubble ───────────────────────────────────────────────────────────
+// MessageBubble (unchanged, works with any text)
 const MessageBubble = ({ item, showTime, onSuggestionPress }) => {
   const isUser = item.sender === "user";
 
@@ -204,7 +204,7 @@ const MessageBubble = ({ item, showTime, onSuggestionPress }) => {
   );
 };
 
-// ─── Main chat screen ─────────────────────────────────────────────────────────
+// Main chat screen
 export default function ChatScreen() {
   const [text, setText] = useState("");
   const [messages, setMessages] = useState([]);
@@ -218,14 +218,10 @@ export default function ChatScreen() {
 
   useEffect(() => {
     if (messages.length > 0 || isTyping) {
-      setTimeout(
-        () => flatListRef.current?.scrollToEnd({ animated: true }),
-        80,
-      );
+      setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 80);
     }
   }, [messages, isTyping]);
 
-  // ── Persistence ──────────────────────────────────────────────────────────────
   const loadMessages = async () => {
     try {
       const data = await AsyncStorage.getItem("CHAT_V2");
@@ -233,9 +229,9 @@ export default function ChatScreen() {
         setMessages(JSON.parse(data));
       } else {
         const welcome = makeMessage(
-          "Namaste! 🙏 I'm your Ayurvedic health assistant.\n\nI'm here to help with personalised diet advice, herbal remedies, daily routines, and wellness guidance based on your unique constitution.",
+          "Namaste! 🙏 I'm your Ayurvedic health assistant.\n\nDescribe your symptoms or ask about diet, remedies, daily routines, and wellness based on your unique constitution.",
           "ai",
-          ["What can you help with?", "My Vata imbalance", "Morning routine"],
+          ["Cold & cough", "Stomach pain", "Headache", "Stress"]
         );
         setMessages([welcome]);
         persist([welcome]);
@@ -253,7 +249,6 @@ export default function ChatScreen() {
     }
   };
 
-  // ── Message factory ───────────────────────────────────────────────────────────
   const makeMessage = (msg, sender, suggestions = []) => ({
     id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
     message: msg,
@@ -262,7 +257,26 @@ export default function ChatScreen() {
     suggestions,
   });
 
-  // ── Send ───────────────────────────────────────────────────────────────────────
+  // Helper to format API response into a readable chat message
+  const formatRemedyResponse = (data) => {
+    let message = `${data.greeting || "Namaste! 🙏"}\n\n`;
+    message += `🌿 **${data.remedyTitle || "Ayurvedic Remedy"}**\n\n`;
+
+    if (data.tips && Array.isArray(data.tips)) {
+      data.tips.forEach((tip, index) => {
+        message += `${tip.emoji || "•"} **${tip.title}**\n`;
+        message += `${tip.briefAdvice}\n`;
+        message += `\n_${tip.detailedDescription}_\n\n`;
+      });
+    }
+
+    if (data.healthNote) {
+      message += `📝 *Health Note:* ${data.healthNote}\n`;
+    }
+
+    return message;
+  };
+
   const handleSend = async (overrideText) => {
     const content = (overrideText ?? text).trim();
     if (!content) return;
@@ -276,36 +290,35 @@ export default function ChatScreen() {
     Keyboard.dismiss();
 
     try {
-      const userId = (await AsyncStorage.getItem("USER_ID")) ?? "user1";
-      const sessionId = "session1";
+      const response = await sendMessageToChat(content);
 
-      const response = await sendMessageToChat(content, userId, sessionId);
+      // Check if we got a valid remedy response
+      if (response && (response.remedyTitle || response.tips)) {
+        const aiText = formatRemedyResponse(response);
 
-      // ✅ CHECK API SUCCESS
-      if (response && (response.message || response.understanding)) {
-        const aiText = response?.understanding?.message || response?.message;
-
-        const aiMsg = makeMessage(aiText, "ai");
+        // Extract tip titles as suggestions for follow-up questions
+        const suggestions = response.tips?.map(tip => tip.title) || [];
+        const aiMsg = makeMessage(aiText, "ai", suggestions.slice(0, 3)); // max 3 suggestions
         const final = [...updated, aiMsg];
         setMessages(final);
         persist(final);
-
-        // ✅ ONLY HERE go to next step
-         navigation.navigate("NextScreen");
       } else {
-        // ❌ Do NOT go next step
-        const errMsg = makeMessage("Invalid response from server.", "ai");
+        // API returned unexpected structure
+        const errMsg = makeMessage(
+          "I received an unexpected response. Please try again later.",
+          "ai"
+        );
         setMessages([...updated, errMsg]);
+        persist([...updated, errMsg]);
       }
     } catch (err) {
-      console.error("sendMessage:", err);
-
-      // ❌ DO NOT navigate here
+      console.error("sendMessage error:", err);
       const errMsg = makeMessage(
-        "Something went wrong. Please try again.",
-        "ai",
+        "Something went wrong. Please check your connection and try again.",
+        "ai"
       );
       setMessages([...updated, errMsg]);
+      persist([...updated, errMsg]);
     } finally {
       setIsTyping(false);
     }
@@ -314,20 +327,18 @@ export default function ChatScreen() {
   const clearChat = async () => {
     await AsyncStorage.removeItem("CHAT_V2");
     const welcome = makeMessage(
-      "Namaste! 🙏 Starting a fresh conversation. How can I help you today?",
+      "Namaste! 🙏 Starting a fresh conversation. Describe your symptoms or ask about Ayurvedic remedies.",
       "ai",
-      ["What can you help with?", "My dosha", "Today's routine"],
+      ["Cold & cough", "Stomach pain", "Headache", "Stress"]
     );
     setMessages([welcome]);
     persist([welcome]);
   };
 
-  // ── Render item ────────────────────────────────────────────────────────────────
   const renderItem = ({ item, index }) => {
     const showTime =
       index === 0 ||
-      new Date(item.timestamp) - new Date(messages[index - 1]?.timestamp) >
-        60000;
+      new Date(item.timestamp) - new Date(messages[index - 1]?.timestamp) > 60000;
     return (
       <MessageBubble
         item={item}
@@ -337,12 +348,11 @@ export default function ChatScreen() {
     );
   };
 
-  // ── UI ─────────────────────────────────────────────────────────────────────────
   return (
     <SafeAreaView style={styles.safe}>
       <StatusBar barStyle="dark-content" backgroundColor={SURFACE} />
 
-      {/* ── Header — always locked at top, never moves ── */}
+      {/* Header (unchanged) */}
       <View style={styles.header}>
         <View style={styles.headerLeft}>
           <View style={styles.headerAvatar}>
@@ -362,23 +372,15 @@ export default function ChatScreen() {
             <Ionicons name="search-outline" size={18} color={TEXT_SECONDARY} />
           </TouchableOpacity>
           <TouchableOpacity style={styles.iconBtn} activeOpacity={0.7}>
-            <Ionicons
-              name="ellipsis-vertical"
-              size={18}
-              color={TEXT_SECONDARY}
-            />
+            <Ionicons name="ellipsis-vertical" size={18} color={TEXT_SECONDARY} />
           </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.clearBtn}
-            onPress={clearChat}
-            activeOpacity={0.8}
-          >
+          <TouchableOpacity style={styles.clearBtn} onPress={clearChat} activeOpacity={0.8}>
             <Text style={styles.clearBtnText}>Clear</Text>
           </TouchableOpacity>
         </View>
       </View>
 
-      {/* ── Quick chips — locked below header, never moves ── */}
+      {/* Quick chips (unchanged) */}
       <View style={styles.chipsBar}>
         <ScrollView
           horizontal
@@ -400,14 +402,6 @@ export default function ChatScreen() {
         </ScrollView>
       </View>
 
-      {/*
-        ── KeyboardAvoidingView wraps ONLY messages + input ──
-        On Android: behavior="padding" + keyboardVerticalOffset=0 is the
-        most stable combo. "height" causes the entire view to resize and
-        jump, which is what caused the chips bar to vibrate.
-        On iOS:     behavior="padding" with offset=0 works because
-        SafeAreaView already handles the insets.
-      */}
       <KeyboardAvoidingView
         style={styles.flex}
         behavior="padding"
@@ -430,7 +424,7 @@ export default function ChatScreen() {
               ListFooterComponent={isTyping ? <TypingIndicator /> : null}
             />
 
-            {/* ── Input area ── */}
+            {/* Input area (unchanged) */}
             <View style={styles.inputArea}>
               <View style={styles.inputRow}>
                 <TouchableOpacity style={styles.attachBtn} activeOpacity={0.7}>
@@ -442,7 +436,7 @@ export default function ChatScreen() {
                   style={styles.input}
                   value={text}
                   onChangeText={setText}
-                  placeholder="Ask about diet, remedies, lifestyle…"
+                  placeholder="Describe your symptoms (e.g., cold, headache)…"
                   placeholderTextColor={TEXT_MUTED}
                   multiline
                   maxLength={500}
@@ -472,12 +466,11 @@ export default function ChatScreen() {
   );
 }
 
-// ─── Styles ────────────────────────────────────────────────────────────────────
+// Styles (unchanged – keep your existing styles)
 const styles = StyleSheet.create({
+  // ... (paste your original styles here, they remain the same)
   safe: { flex: 1, backgroundColor: SURFACE },
   flex: { flex: 1 },
-
-  // ── Header ──
   header: {
     backgroundColor: SURFACE,
     flexDirection: "row",
@@ -510,24 +503,9 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: SURFACE,
   },
-  headerTitle: {
-    fontSize: 15,
-    fontWeight: "700",
-    color: TEXT_PRIMARY,
-    letterSpacing: -0.2,
-  },
-  onlineRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 5,
-    marginTop: 2,
-  },
-  onlinePulse: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: "#34d399",
-  },
+  headerTitle: { fontSize: 15, fontWeight: "700", color: TEXT_PRIMARY, letterSpacing: -0.2 },
+  onlineRow: { flexDirection: "row", alignItems: "center", gap: 5, marginTop: 2 },
+  onlinePulse: { width: 6, height: 6, borderRadius: 3, backgroundColor: "#34d399" },
   headerOnline: { fontSize: 11, color: BRAND, fontWeight: "600" },
   headerActions: { flexDirection: "row", alignItems: "center", gap: 6 },
   iconBtn: {
@@ -540,188 +518,41 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  clearBtn: {
-    backgroundColor: "#fff5f5",
-    borderWidth: 0.5,
-    borderColor: "#fca5a5",
-    borderRadius: 16,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-  },
+  clearBtn: { backgroundColor: "#fff5f5", borderWidth: 0.5, borderColor: "#fca5a5", borderRadius: 16, paddingHorizontal: 12, paddingVertical: 6 },
   clearBtnText: { fontSize: 12, fontWeight: "700", color: "#dc2626" },
-
-  // ── Chips ──
-  chipsBar: {
-    backgroundColor: SURFACE,
-    borderBottomWidth: 0.5,
-    borderBottomColor: BORDER,
-  },
+  chipsBar: { backgroundColor: SURFACE, borderBottomWidth: 0.5, borderBottomColor: BORDER },
   chipsScroll: { paddingHorizontal: 14, paddingVertical: 9, gap: 8 },
-  chip: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 5,
-    backgroundColor: BRAND_LIGHT,
-    borderWidth: 0.5,
-    borderColor: "#9FE1CB",
-    borderRadius: 20,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-  },
+  chip: { flexDirection: "row", alignItems: "center", gap: 5, backgroundColor: BRAND_LIGHT, borderWidth: 0.5, borderColor: "#9FE1CB", borderRadius: 20, paddingHorizontal: 12, paddingVertical: 6 },
   chipText: { fontSize: 12, fontWeight: "600", color: BRAND_DARK },
-
-  // ── Messages ──
-  messagesList: {
-    paddingHorizontal: 14,
-    paddingTop: 6,
-    paddingBottom: 8,
-    flexGrow: 1,
-    backgroundColor: BG,
-  },
+  messagesList: { paddingHorizontal: 14, paddingTop: 6, paddingBottom: 8, flexGrow: 1, backgroundColor: BG },
   messageWrapper: { marginBottom: 2 },
-
-  timeDivider: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-    marginVertical: 16,
-  },
+  timeDivider: { flexDirection: "row", alignItems: "center", gap: 10, marginVertical: 16 },
   timeLine: { flex: 1, height: 0.5, backgroundColor: BORDER },
   timeStamp: { fontSize: 11, color: TEXT_MUTED, fontWeight: "600" },
-
-  msgRow: {
-    flexDirection: "row",
-    alignItems: "flex-end",
-    gap: 8,
-    marginBottom: 10,
-  },
+  msgRow: { flexDirection: "row", alignItems: "flex-end", gap: 8, marginBottom: 10 },
   msgRowUser: { flexDirection: "row-reverse" },
-
-  aiAvatar: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    backgroundColor: BRAND,
-    alignItems: "center",
-    justifyContent: "center",
-    flexShrink: 0,
-    marginBottom: 2,
-  },
-
+  aiAvatar: { width: 30, height: 30, borderRadius: 15, backgroundColor: BRAND, alignItems: "center", justifyContent: "center", flexShrink: 0, marginBottom: 2 },
   bubbleWrapper: { maxWidth: "74%", alignItems: "flex-start" },
   bubbleWrapperUser: { alignItems: "flex-end" },
   userSpacer: { width: 30 },
-
   bubble: { borderRadius: 18, paddingVertical: 10, paddingHorizontal: 14 },
   userBubble: { backgroundColor: USER_BUBBLE, borderBottomRightRadius: 4 },
-  aiBubble: {
-    backgroundColor: SURFACE,
-    borderWidth: 0.5,
-    borderColor: BORDER,
-    borderBottomLeftRadius: 4,
-  },
-
+  aiBubble: { backgroundColor: SURFACE, borderWidth: 0.5, borderColor: BORDER, borderBottomLeftRadius: 4 },
   bubbleText: { fontSize: 14, lineHeight: 21 },
   userText: { color: "#fff" },
   aiText: { color: TEXT_PRIMARY },
   bubbleTime: { fontSize: 10, marginTop: 5 },
   userTime: { color: "rgba(255,255,255,0.55)", textAlign: "right" },
   aiTime: { color: TEXT_MUTED },
-
-  suggestionRow: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 6,
-    marginTop: 7,
-  },
-  suggestionChip: {
-    backgroundColor: BRAND_LIGHT,
-    borderWidth: 0.5,
-    borderColor: "#9FE1CB",
-    borderRadius: 12,
-    paddingHorizontal: 11,
-    paddingVertical: 5,
-  },
+  suggestionRow: { flexDirection: "row", flexWrap: "wrap", gap: 6, marginTop: 7 },
+  suggestionChip: { backgroundColor: BRAND_LIGHT, borderWidth: 0.5, borderColor: "#9FE1CB", borderRadius: 12, paddingHorizontal: 11, paddingVertical: 5 },
   suggestionText: { fontSize: 12, fontWeight: "600", color: BRAND_DARK },
-
-  // ── Typing ──
-  typingBubble: {
-    backgroundColor: SURFACE,
-    borderWidth: 0.5,
-    borderColor: BORDER,
-    borderRadius: 18,
-    borderBottomLeftRadius: 4,
-    paddingVertical: 13,
-    paddingHorizontal: 16,
-    flexDirection: "row",
-    gap: 5,
-    alignItems: "center",
-  },
-  typingDot: {
-    width: 7,
-    height: 7,
-    borderRadius: 3.5,
-    backgroundColor: BORDER,
-  },
-
-  // ── Input ──
-  inputArea: {
-    backgroundColor: SURFACE,
-    borderTopWidth: 0.5,
-    borderTopColor: BORDER,
-    paddingHorizontal: 14,
-    paddingTop: 10,
-    paddingBottom: 12,
-  },
-  inputRow: {
-    flexDirection: "row",
-    alignItems: "flex-end",
-    gap: 8,
-    backgroundColor: BG,
-    borderWidth: 1,
-    borderColor: BORDER,
-    borderRadius: 26,
-    paddingHorizontal: 6,
-    paddingVertical: 5,
-    minHeight: 48,
-  },
-  attachBtn: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
-    backgroundColor: BRAND_LIGHT,
-    alignItems: "center",
-    justifyContent: "center",
-    flexShrink: 0,
-    marginBottom: 1,
-  },
-  input: {
-    flex: 1,
-    fontSize: 14,
-    color: TEXT_PRIMARY,
-    paddingVertical: 6,
-    paddingHorizontal: 2,
-    maxHeight: SCREEN_HEIGHT * 0.18,
-    lineHeight: 20,
-  },
-  sendBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: BRAND,
-    alignItems: "center",
-    justifyContent: "center",
-    flexShrink: 0,
-    marginBottom: 1,
-  },
+  typingBubble: { backgroundColor: SURFACE, borderWidth: 0.5, borderColor: BORDER, borderRadius: 18, borderBottomLeftRadius: 4, paddingVertical: 13, paddingHorizontal: 16, flexDirection: "row", gap: 5, alignItems: "center" },
+  typingDot: { width: 7, height: 7, borderRadius: 3.5, backgroundColor: BORDER },
+  inputArea: { backgroundColor: SURFACE, borderTopWidth: 0.5, borderTopColor: BORDER, paddingHorizontal: 14, paddingTop: 10, paddingBottom: 12 },
+  inputRow: { flexDirection: "row", alignItems: "flex-end", gap: 8, backgroundColor: BG, borderWidth: 1, borderColor: BORDER, borderRadius: 26, paddingHorizontal: 6, paddingVertical: 5, minHeight: 48 },
+  attachBtn: { width: 34, height: 34, borderRadius: 17, backgroundColor: BRAND_LIGHT, alignItems: "center", justifyContent: "center", flexShrink: 0, marginBottom: 1 },
+  input: { flex: 1, fontSize: 14, color: TEXT_PRIMARY, paddingVertical: 6, paddingHorizontal: 2, maxHeight: SCREEN_HEIGHT * 0.18, lineHeight: 20 },
+  sendBtn: { width: 36, height: 36, borderRadius: 18, backgroundColor: BRAND, alignItems: "center", justifyContent: "center", flexShrink: 0, marginBottom: 1 },
   sendBtnOff: { backgroundColor: BG, borderWidth: 0.5, borderColor: BORDER },
-
-  inputFooter: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginTop: 6,
-    paddingHorizontal: 6,
-  },
-  charCount: { fontSize: 11, color: TEXT_MUTED },
-  poweredBy: { fontSize: 11, color: TEXT_MUTED },
 });
